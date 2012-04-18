@@ -1,36 +1,44 @@
 <?php
 App::uses('CacheEngine', 'Cache');
 class DatabaseCacheEngine extends CacheEngine {
-	public static $CacheModel = null;
+	public $CacheModel = null;
 	
-	public static function write($key, $value, $duration){
-		self::loadCacheModel();
-		return self::$CacheModel->writeValueByKey($key, $value, $duration); 
+	public function write($key, $value, $duration){
+		$this->loadCacheModel();
+		return $this->CacheModel->writeValueByKey($key, $value, $duration); 
 	}
 	
-	public static function read($key){
-		self::loadCacheModel();
-		return self::$CacheModel->findValueByKey($key);
+	public function read($key){
+		$this->loadCacheModel();
+		return $this->CacheModel->findValueByKey($key);
 	}
 	
-	public static function delete($key){
-		self::loadCacheModel();
-		return self::$CacheModel->deleteByKey($key);
+	public function delete($key){
+		$this->loadCacheModel();
+		return $this->CacheModel->deleteByKey($key);
 	}
 	
-	public static function clear($check){
-		self::loadCacheModel();
-		return $check ? self::gc() : self::$CacheModel->clearAll();
+	public function clear($check){
+		$this->loadCacheModel();
+		return $check ? $this->gc() : $this->CacheModel->clearAll();
 	}
 	
-	public static function gc(){
-		self::loadCacheModel();
-		self::$CacheModel->clearExpired();
+	public function increment($key, $offset = 1){
+		return false;
 	}
 	
-	public static function loadCacheModel(){
-		if(self::$CacheModel === null){
-			self::$CacheModel = ClassRegistry::init('Icing.DatabaseCache');
+	public function decrement($key, $offset = 1){
+		return false;
+	}
+	
+	public function gc(){
+		$this->loadCacheModel();
+		$this->CacheModel->clearExpired();
+	}
+	
+	public function loadCacheModel(){
+		if($this->CacheModel === null){
+			$this->CacheModel = ClassRegistry::init('Icing.DatabaseCache');
 		}
 	}
 }

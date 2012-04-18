@@ -1,7 +1,8 @@
 <?php
 class DatabaseCache extends IcingAppModel {
-	
+	public $name = 'DatabaseCache';
 	public $primaryKey = 'key';
+	public $useTable = 'database_caches';
 	
 	/**
 	* Find the value by key
@@ -11,8 +12,8 @@ class DatabaseCache extends IcingAppModel {
 	function findValueByKey($key){
 		$retval = $this->find('first', array(
 			'conditions' => array(
-				'Review.key' => $key,
-				'Review.durration >=' => time() 
+				'DatabaseCache.key' => $key,
+				'DatabaseCache.durration >=' => time() 
 			)
 		));
 		if(!empty($retval)){

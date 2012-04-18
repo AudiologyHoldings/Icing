@@ -13,7 +13,7 @@ class DatabaseCache extends IcingAppModel {
 		$retval = $this->find('first', array(
 			'conditions' => array(
 				'DatabaseCache.key' => $key,
-				'DatabaseCache.durration >=' => time() 
+				'DatabaseCache.duration >=' => time() 
 			)
 		));
 		if(!empty($retval)){
@@ -26,16 +26,17 @@ class DatabaseCache extends IcingAppModel {
 	* Write the value to the database
 	* @param string key
 	* @param mixed value
-	* @param mixed durration (strtotime friendly)
+	* @param mixed duration (strtotime friendly)
 	* @return boolean success
 	*/
-	function writeValueByKey($key, $value, $durration){
+	function writeValueByKey($key, $value, $duration){
 		$this->create();
-		return !!$this->save(array(
+		$save_data = array(
 			'key' => $key,
 			'value' => json_encode($value),
-			'durration' => strtotime($durration)
-		));
+			'duration' => time() + $duration
+		);
+		return !!$this->save($save_data);
 	}
 	
 	/**
@@ -54,7 +55,7 @@ class DatabaseCache extends IcingAppModel {
 	* @return boolean success
 	*/
 	function clearAll(){
-		return $this->deleteAll();
+		return $this->deleteAll(array('1=1'));
 	}
 	
 	/**

@@ -13,7 +13,7 @@ Create database_caches table either using the MyISAM Engine (useful for ability 
 	CREATE TABLE IF NOT EXISTS `database_caches` (
 		`key` varchar(50) NOT NULL,
 		`value` text NOT NULL,
-		`duration` int(11) NOT NULL,
+		`duration` int(11) unsigned NOT NULL,
 		UNIQUE KEY `key` (`key`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 	
@@ -22,7 +22,7 @@ If you don't plan on storing anything more than 255 characters of json_encoded d
 	CREATE TABLE IF NOT EXISTS `database_caches` (
 		`key` varchar(50) NOT NULL,
 		`value` varchar(255) NOT NULL,
-		`duration` int(11) NOT NULL,
+		`duration` int(11) unsigned NOT NULL,
 		UNIQUE KEY `key` (`key`)
 	) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 	

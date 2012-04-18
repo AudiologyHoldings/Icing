@@ -4,3 +4,4 @@ class IcingAppModel extends AppModel {
 
 }
 
+?>

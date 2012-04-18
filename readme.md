@@ -1,10 +1,10 @@
 # CakePHP Icing Plugin
 
-	Portable Package of Utilities for CakePHP
+Portable Package of Utilities for CakePHP
 
 ## DatabaseCacheEngine
 
-	Database Cache Engine useful for using the Cache::read/write but usable across multiple servers.
+Database Cache Engine useful for using the Cache::read/write but usable across multiple servers.
 	
 ###  DatabaseCacheEngine Setup
 

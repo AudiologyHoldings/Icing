@@ -64,7 +64,7 @@ class DatabaseCache extends IcingAppModel {
 	*/
 	function clearExpired(){
 		return $this->deleteAll(array(
-			'DatabaseCache.durration <' => time()
+			'DatabaseCache.duration <' => time()
 		));
 	}
 }

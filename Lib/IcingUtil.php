@@ -27,7 +27,7 @@ class IcingUtil extends Object {
 			),$stringLength,$padding,STR_PAD_RIGHT);
 		//echo "<hr>$parent/$input ($init) [$parentFolderStringPos/$parentFoldersCount/$parentFoldersIncrement]";
 		if ($parentFoldersCount > 1) {
-			$parent = numberParent($parent,$stringLength,($parentFolderStringPos+$parentFoldersIncrement),($parentFoldersCount-1),$parentFoldersIncrement,$padding);
+			$parent = self::numberParent($parent,$stringLength,($parentFolderStringPos+$parentFoldersIncrement),($parentFoldersCount-1),$parentFoldersIncrement,$padding);
 		}
 		return "$parent/$input";
 	}
@@ -94,7 +94,7 @@ class IcingUtil extends Object {
 		$_is_utf8_split = 5000;
 		if (strlen($string) > $_is_utf8_split) {
 			for ($i=0,$s=$_is_utf8_split,$j=ceil(strlen($string)/$_is_utf8_split);$i < $j;$i++,$s+=$_is_utf8_split) {
-				if (detectUTF8(substr($string,$s,$_is_utf8_split))) {
+				if (self::detectUTF8(substr($string,$s,$_is_utf8_split))) {
 					return true;
 				}
 			}
@@ -124,11 +124,11 @@ class IcingUtil extends Object {
 		if (is_array($str)) {
 			$r = array();
 			foreach ($str as $k => $v) {
-				$r[$k] = makeUTF8($str);
+				$r[$k] = self::makeUTF8($str);
 			}
 			return $r;
 		} else {
-			if (detectUTF8($str)) {
+			if (self::detectUTF8($str)) {
 				$str = utf8_encode($str);
 			}
 			return $str;
@@ -249,7 +249,7 @@ class IcingUtil extends Object {
 		}
 	}
 	
-	self::function vn() {
+	static function vn() {
 		$args = func_get_args();
 		$data = array_shift($args);
 		$return = pluckIsValid($data,implode('/',$args));
@@ -290,7 +290,7 @@ class IcingUtil extends Object {
 		}
 		if (isset($settings['add_www']) && !empty($settings['add_www'])) {
 			if (strpos('www.',$link)===false) {
-				$parts = parseUrl($link);
+				$parts = self::parseUrl($link);
 				if (self::vn($parts,'host')) {
 					$link = str_replace($parts['host'],'www.'.$parts['host'],$link); 
 				} elseif (strpos('://',$link)!==false) {

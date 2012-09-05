@@ -3,7 +3,7 @@ class DatabaseCache extends IcingAppModel {
 	public $name = 'DatabaseCache';
 	public $primaryKey = 'key';
 	public $useTable = 'database_caches';
-	
+
 	/**
 	* Find the value by key
 	* @param string key
@@ -13,7 +13,7 @@ class DatabaseCache extends IcingAppModel {
 		$retval = $this->find('first', array(
 			'conditions' => array(
 				'DatabaseCache.key' => $key,
-				'DatabaseCache.duration >=' => time() 
+				'DatabaseCache.duration >=' => time()
 			)
 		));
 		if (!empty($retval)) {
@@ -21,7 +21,7 @@ class DatabaseCache extends IcingAppModel {
 		}
 		return false;
 	}
-	
+
 	/**
 	* Write the value to the database
 	* @param string key
@@ -38,16 +38,16 @@ class DatabaseCache extends IcingAppModel {
 		);
 		return !!$this->save($save_data);
 	}
-	
+
 	/**
 	* Delete a record by it's key
 	* @param string key
 	* @return boolean success
 	*/
 	function deleteByKey($key){
-		return $this->delete(array($this->alias.'.key LIKE' => str_replace('%%', '%', '%'.$key)));
+		return $this->deleteAll(array($this->alias.'.key LIKE' => str_replace('%%', '%', '%'.$key)));
 	}
-	
+
 	/**
 	* Clear all records
 	* @return boolean success
@@ -55,7 +55,7 @@ class DatabaseCache extends IcingAppModel {
 	function clearAll(){
 		return $this->deleteAll(array('1=1'));
 	}
-	
+
 	/**
 	* Clear the expired cache keys
 	* @return boolean success

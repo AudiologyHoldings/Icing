@@ -19,19 +19,6 @@
   		'versions' => '5', //how many version to save at any given time (false by default unlimited)
   		'bind' => true, //attach Versionable as HasMany relationship for you onFind and if contained
   	));
-  	
-  	Example to attach HasMany on the model you're Versionable
-  	
-  	public $hasMany = array(
-  		'IcingVersion' => array(
-  			'className' => 'Icing.IcingVersion',
-  			'foreignKey' => 'model_id',
-  			'conditions' => array('IcingVersion.model' => 'ModelName')
-  		)
-  	);
-  	
-  	Or you can set the behavior to do it for you as example 2 suggests
-  
   * @version: since 1.0
   * @author: Nick Baker
   * @link: http://www.webtechnick.com

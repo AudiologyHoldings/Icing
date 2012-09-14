@@ -15,23 +15,28 @@
   *
   * @example 
   	public $actsAs = array('Icing.Versionable' => array(
-  		'contain' => array('Hour'), //contains for relative model to be saved.
-  		'versions' => '5', //how many version to save at any given time (false by default unlimited)
-  		'bind' => true, //attach Versionable as HasMany relationship for you onFind and if contained
+  		'contain'         => array('Hour'), //contains for relative model to be saved.
+  		'versions'        => '5',           //how many version to save at any given time (false by default unlimited)
+  		'minor_timeframe' => '10',          //Mark as minor_version if saved within 10 seconds of last version.  Easily cleanup minor_versions
+  		'bind'            => true,          //attach Versionable as HasMany relationship for you onFind and if contained
   	));
   	
   	Restore from Previous Version
   	@example
-  	$this->Model->restoreVersion(2); //restores version id 2
-  	$this->Model->restoreVersion(2, false); //restores version id 2 and won't create a new version before restoring.
+  	$this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a'); //restores version id 50537471-ba08-44ae-a606-24e5e017215a
+  	$this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a', false); //restores version id 50537471-ba08-44ae-a606-24e5e017215a and won't create a new version before restoring.
+  	$this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
+  	$this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
   	
   * @version: since 1.0
   * @author: Nick Baker
   * @link: http://www.webtechnick.com
   */
 App::uses('AuthComponent', 'Controller/Component');
+App::uses('IcingUtil', 'Icing.Lib');
 class VersionableBehavior extends ModelBehavior {
 	public $IcingVersion = null;
+	public $errors = array();
 	/**
 	* Setup the behavior
 	*/
@@ -39,6 +44,7 @@ class VersionableBehavior extends ModelBehavior {
 		$settings = array_merge(array(
 			'contain' => array(),
 			'versions' => false,
+			'minor_timeframe' => false,
 			'bind' => false
 		), (array)$settings);
 		if(!$Model->Behaviors->attached('Containable')){
@@ -96,14 +102,36 @@ class VersionableBehavior extends ModelBehavior {
 	/**
 	* Restore data from a version_id
 	* @param int version id
-	* @Param boolean create a new version on restore. boolean true
+	* @param model_id of the id to reversion if version is an int.
+	* @param boolean create a new version on restore. boolean true
+	* @example
+		$this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a'); //restores version id 50537471-ba08-44ae-a606-24e5e017215a
+  	$this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a', false); //restores version id 50537471-ba08-44ae-a606-24e5e017215a and won't create a new version before restoring.
+  	$this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
+  	$this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
 	* @return result of saveAll on model
 	*/
-	public function restoreVersion(Model $Model, $version_id, $create_new_version = true){
-		$restore = $this->IcingVersion->findById($version_id);
+	public function restoreVersion(Model $Model, $version_id, $model_id = 0, $create_new_version = true){
+		if($model_id === false){
+			$create_new_version = false;
+			$model_id = 0;
+		}
+		$restore = false;
+		if(strlen($version_id) == 36){
+			$restore = $this->IcingVersion->findById($version_id);
+		} elseif($model_id) {
+			$restore = $this->IcingVersion->findVersionBack($Model->alias, $version_id, $model_id);
+		}
+		
 		if(!empty($restore)){
 			$model_data = json_decode($restore['IcingVersion']['json'], true);
-			return ClassRegistry::init($restore['IcingVersion']['model'])->saveAll($model_data, array('icing_restore' => $create_new_version));
+			if($Model->alias == $restore['IcingVersion']['model']){
+				return $Model->saveAll($model_data, array('icing_restore' => $create_new_version));
+			} else {
+				$this->addError($Model, "Restore found was for different model. {$restore['IcingVersion']['model']} != {$Model->alias}");
+			}
+		} else {
+			$this->addError($Model, "No restore version found for params.");
 		}
 		return false;
 	}
@@ -133,12 +161,26 @@ class VersionableBehavior extends ModelBehavior {
 				'model_id' => $model_id,
 				'model' => $Model->alias,
 				'json' => json_encode($current_data),
-				'is_delete' => $delete
+				'is_delete' => $delete,
+				'url' => IcingUtil::getUrl(),
+				'ip' => IcingUtil::getIP(),
+				'is_minor_version' => false,
 			);
 			$Model->data = $data;
-			$this->IcingVersion->create();
-			return $this->IcingVersion->saveVersion($version_data, $this->settings[$Model->alias]['versions']);
+			return $this->IcingVersion->saveVersion($version_data, $this->settings[$Model->alias]);
 		}
 		return false;
+	}
+	
+	/**
+	* Adds error text to errors array
+	* @param Model model
+	* @param string message to append
+	*/
+	private function addError(Model $Model, $message){
+		if(!isset($this->errors[$Model->alias])){
+			$this->errors[$Model->alias] = array();
+		}
+		$this->errors[$Model->alias][] = $message;
 	}
 }

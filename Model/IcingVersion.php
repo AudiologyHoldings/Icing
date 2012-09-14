@@ -44,12 +44,41 @@ class IcingVersion extends IcingAppModel {
 	);
 	
 	/**
+	* Finds the version back from curent based by number count
+	* @param int version number 1-infinity
+	*/
+	public function findVersionBack($model = null, $number = 0, $model_id = 0){
+		if($number && $model_id && $model){
+			return $this->find('first', array(
+				'conditions' => array(
+					'model' => $model,
+					'model_id' => $model_id
+				),
+				'order' => array("IcingVersion.created DESC"),
+				'offset' => $number - 1
+			));
+		}
+		return false;
+	}
+	
+	/**
+	* Cleanup all minor versions on table
+	*/
+	public function cleanUpMinorVersions(){
+		return $this->deleteAll(array(
+			'IcingVersion.is_minor_version' => true
+		));
+	}
+	
+	/**
 	* Save The Version data, but first check the limit, and delete the oldest based on created
 	* if limit is reached.
 	* @param array of data to save
-	* @param int versions to keep for a paticular model and id
+	* @param array of settings from VersionableBehavior
+	* - versions number of versions to save back on paticular record for model
 	*/
-	public function saveVersion($data, $versions = false){
+	public function saveVersion($data, $settings = array()){
+		$versions = @$settings['versions'];
 		if($versions){
 			$conditions = array(
 				'model' => $data['model'],
@@ -67,6 +96,21 @@ class IcingVersion extends IcingAppModel {
 				$this->delete($last[$this->alias]['id']);
 			}
 		}
+		//check if this is a minor_revision based on minor_timeframe from settings
+		$timeframe = @$settings['minor_timeframe'];
+		if($timeframe){
+			$versions_within_timeframe = $this->find('list', array(
+				'conditions' => array_merge($conditions, array(
+					'IcingVersion.created >=' => date("Y-m-d H:i:s", strtotime("-$timeframe seconds", time()))
+				)),
+			));
+			foreach($versions_within_timeframe as $version_id => $model){
+				$this->id = $version_id;
+				$this->saveField('is_minor_version', true);
+			}
+		}
+		
+		$this->create();
 		return $this->save($data);
 	}
 }

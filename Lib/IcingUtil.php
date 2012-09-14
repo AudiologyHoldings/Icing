@@ -1,5 +1,44 @@
 <?php
 class IcingUtil extends Object {
+	
+	/**
+	* Returns the server URL
+	* @return string of server url
+	*/
+	static function getUrl(){
+		$check_order = array(
+			'REQUEST_URI',
+			'QUERY_STRING'
+		);
+		foreach($check_order as $key){
+			if(isset($_SERVER[$key]) && !empty($_SERVER[$key])){
+				return $_SERVER[$key];
+			}
+		}
+		return null;
+	}
+	
+	/**
+	* Returns the server IP
+	* @return string of incoming IP
+	*/
+	static function getIp(){
+		$check_order = array(
+			'HTTP_CLIENT_IP', //shared client
+			'HTTP_X_FORWARDED_FOR', //proxy address
+			'REMOTE_ADDR', //fail safe
+		);
+		
+		foreach($check_order as $key){
+			if(isset($_SERVER[$key]) && !empty($_SERVER[$key])){
+				return $_SERVER[$key];
+			}
+		}
+	}
+	
+	/**
+	* Return upload limit on configurations
+	*/
 	static function uploadLimit(){
 		$max_upload = (int)(ini_get('upload_max_filesize'));
 		$max_post = (int)(ini_get('post_max_size'));

@@ -1,14 +1,20 @@
 <?php
 /**
-  * Behavior for Versionable
+  * Attach to any model to creating versions of current state on save for later restoration
+  * Uses the AuthComponent to log the user doing the save by default.
+  *
+  * Setup:
+  *   You have to install the icing_versions table into your database.  You can do so by running:
+  *   
+  * cake schema create -p Icing
+  *   
   * 
   * Example Usage:
+  * @example 
+  * public $actsAs = array('Icing.Versionable');
   *
   * @example 
-  *   var $actsAs = array('Icing.Versionable');
-  *
-  * @example 
-  	var $actsAs = array('Icing.Versionable' => array(
+  	public $actsAs = array('Icing.Versionable' => array(
   		'contain' => array('Hour'), //contains for relative model to be saved.
   		'versions' => '5', //how many version to save at any given time (false by default unlimited)
   		'bind' => true, //attach Versionable as HasMany relationship for you onFind and if contained

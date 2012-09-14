@@ -52,7 +52,7 @@ class VersionableBehavior extends ModelBehavior {
 	* @param Model model
 	*/
 	public function beforeSave(Model $Model, $options = array()){
-		if(!isset($options['icing_restore'])){
+		if(!isset($options['icing_restore']) || (isset($options['icing_restore']) && $options['icing_restore'])){
 			$this->saveVersion($Model);
 		}
 		return $Model->beforeSave();
@@ -95,13 +95,14 @@ class VersionableBehavior extends ModelBehavior {
 	/**
 	* Restore data from a version_id
 	* @param int version id
+	* @Param boolean create a new version on restore. boolean true
 	* @return result of saveAll on model
 	*/
-	public function restoreVersion(Model $Model, $version_id){
+	public function restoreVersion(Model $Model, $version_id, $create_new_version = true){
 		$restore = $this->IcingVersion->findById($version_id);
 		if(!empty($restore)){
 			$model_data = json_decode($restore['IcingVersion']['json'], true);
-			return ClassRegistry::init($restore['IcingVersion']['model'])->saveAll($model_data, array('icing_restore' => true));
+			return ClassRegistry::init($restore['IcingVersion']['model'])->saveAll($model_data, array('icing_restore' => $create_new_version));
 		}
 		return false;
 	}

@@ -32,7 +32,7 @@ Default Settings:
   	'versions'        => '5',           //how many version to save at any given time (false by default unlimited)
   	'minor_timeframe' => '10',          //Mark all previous versions if saved within 10 seconds of current version.  Easily cleanup minor_versions
   	'bind'            => true,          //attach IcingVersion as HasMany relationship for you on find and if contained
-  ));
+  	));
 
 Restoring from a version
 

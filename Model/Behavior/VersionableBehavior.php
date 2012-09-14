@@ -23,6 +23,7 @@
   	Restore from Previous Version
   	@example
   	$this->Model->restoreVersion(2); //restores version id 2
+  	$this->Model->restoreVersion(2, false); //restores version id 2 and won't create a new version before restoring.
   	
   * @version: since 1.0
   * @author: Nick Baker

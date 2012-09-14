@@ -51,8 +51,10 @@ class VersionableBehavior extends ModelBehavior {
 	* On save will version the current state of the model with containable settings.
 	* @param Model model
 	*/
-	public function beforeSave(Model $Model){
-		$this->saveVersion($Model);
+	public function beforeSave(Model $Model, $options = array()){
+		if(!isset($options['icing_restore'])){
+			$this->saveVersion($Model);
+		}
 		return $Model->beforeSave();
 	}
 	
@@ -99,9 +101,7 @@ class VersionableBehavior extends ModelBehavior {
 		$restore = $this->IcingVersion->findById($version_id);
 		if(!empty($restore)){
 			$model_data = json_decode($restore['IcingVersion']['json'], true);
-			$retval = ClassRegistry::init($restore['IcingVersion']['model'])->saveAll($model_data);
-			$this->IcingVersion->save($restore);
-			return $retval;
+			return ClassRegistry::init($restore['IcingVersion']['model'])->saveAll($model_data, array('icing_restore' => true));
 		}
 		return false;
 	}
@@ -120,7 +120,7 @@ class VersionableBehavior extends ModelBehavior {
 		if(isset($Model->data[$Model->alias][$Model->primaryKey]) && !empty($Model->data[$Model->alias][$Model->primaryKey])){
 			$model_id = $Model->data[$Model->alias][$Model->primaryKey];
 		}
-		if($model_id){
+		if($model_id && !isset($Model->data['icing_restore'])){
 			$data = $Model->data; //cache the data incase the model has some afterfind stuff that sets data
 			$current_data = $Model->find('first', array(
 				'conditions' => array("{$Model->alias}.{$Model->primaryKey}" => $model_id),
@@ -134,6 +134,7 @@ class VersionableBehavior extends ModelBehavior {
 				'is_delete' => $delete
 			);
 			$Model->data = $data;
+			$this->IcingVersion->create();
 			return $this->IcingVersion->saveVersion($version_data, $this->settings[$Model->alias]['versions']);
 		}
 		return false;

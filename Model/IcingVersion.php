@@ -29,31 +29,16 @@ class IcingVersion extends IcingAppModel {
 		'model' => array(
 			'notempty' => array(
 				'rule' => array('notempty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
-				//'last' => false, // Stop validation after this rule
-				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
 		),
 		'json' => array(
 			'notempty' => array(
 				'rule' => array('notempty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
-				//'last' => false, // Stop validation after this rule
-				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
 		),
 		'is_delete' => array(
 			'boolean' => array(
 				'rule' => array('boolean'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
-				//'last' => false, // Stop validation after this rule
-				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
 		),
 	);
@@ -61,9 +46,26 @@ class IcingVersion extends IcingAppModel {
 	/**
 	* Save The Version data, but first check the limit, and delete the oldest based on created
 	* if limit is reached.
+	* @param array of data to save
+	* @param int versions to keep for a paticular model and id
 	*/
-	function saveVersion($data, $limit = false){
-		if($limit){
+	public function saveVersion($data, $versions = false){
+		if($versions){
+			$conditions = array(
+				'model' => $data['model'],
+				'model_id' => $data['model_id'],
+			);
+			$count = $this->find('count', array(
+				'conditions' => $conditions 
+			));
+			if($count >= $versions){
+				$last = $this->find('first', array(
+					'fields' => array('id'),
+					'conditions' => $conditions,
+					'order' => array("{$this->alias}.created ASC")
+				));
+				$this->delete($last[$this->alias]['id']);
+			}
 		}
 		return $this->save($data);
 	}

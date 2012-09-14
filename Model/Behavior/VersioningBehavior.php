@@ -9,9 +9,22 @@
   *
   * @example 
   	var $actsAs = array('Icing.Versioning' => array(
-  		'contain' => array('Hour') //contains for relative model to be saved.
-  		'limit' => '5' //how many version to save at any given time (false by default unlimited)
+  		'contain' => array('Hour'), //contains for relative model to be saved.
+  		'versions' => '5', //how many version to save at any given time (false by default unlimited)
+  		'bind' => true, //attach Versioning as HasMany relationship for you onFind
   	));
+  	
+  	Example to attach HasMany on the model you're versioning
+  	
+  	public $hasMany = array(
+  		'IcingVersion' => array(
+  			'className' => 'Icing.IcingVersion',
+  			'foreignKey' => 'model_id',
+  			'conditions' => array('IcingVersion.model' => 'ModelName')
+  		)
+  	);
+  	
+  	Or you can set the behavior to do it for you as example 2 suggests
   
   * @version: since 1.0
   * @author: Nick Baker
@@ -26,7 +39,8 @@ class VersioningBehavior extends ModelBehavior {
   public function setUp(Model $Model, $settings = array()){
   	$settings = array_merge(array(
   		'contain' => array(),
-  		'limit' => false
+  		'versions' => false,
+  		'bind' => false
   	), (array)$settings);
   	if(!$Model->Behaviors->attached('Containable')){
   		$Model->Behaviors->attach('Containable');
@@ -42,6 +56,30 @@ class VersioningBehavior extends ModelBehavior {
   public function beforeSave(Model $Model){
   	$this->saveVersion($Model);
     return $Model->beforeSave();
+  }
+  
+  /**
+  * Add the association on find if they turn on the association in settings
+  * Only adds the bind if contained in the query
+  * @param Model model
+  * @param array query
+  */
+  public function beforeFind(Model $Model, $query = array()){
+  	if($this->settings[$Model->alias]['bind']){
+  		//Only contain if we have it contained, or if no contain is specified
+  		if(!isset($query['contain']) || (isset($query['contain']) && in_array('IcingVersion', $query['contain']))){
+				$Model->bindModel(array(
+					'hasMany' => array(
+						'IcingVersion' => array(
+							'className' => 'Icing.IcingVersion',
+							'foreignKey' => 'model_id',
+							'conditions' => array("IcingVersion.model" => $Model->alias)
+						)
+					)
+				));
+			}
+  	}
+  	return $Model->beforeFind($query);
   }
   
   /**
@@ -63,7 +101,9 @@ class VersioningBehavior extends ModelBehavior {
   	$restore = $this->IcingVersion->findById($version_id);
   	if(!empty($restore)){
   		$model_data = json_decode($restore['IcingVersion']['json'], true);
-  		return ClassRegistry::init($restore['IcingVersion']['model'])->saveAll($model_data);
+  		$retval = ClassRegistry::init($restore['IcingVersion']['model'])->saveAll($model_data);
+  		$this->IcingVersion->save($restore);
+  		return $retval;
   	}
   	return false;
   }
@@ -96,7 +136,7 @@ class VersioningBehavior extends ModelBehavior {
   			'is_delete' => $delete
   		);
   		$Model->data = $data;
-  		return $this->IcingVersion->saveVersion($version_data, $this->settings[$Model->alias]['limit']);
+  		return $this->IcingVersion->saveVersion($version_data, $this->settings[$Model->alias]['versions']);
   	}
   	return false;
   }

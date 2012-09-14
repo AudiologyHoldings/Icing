@@ -2,6 +2,39 @@
 
 Portable Package of Utilities for CakePHP
 
+## VersionableBehavior
+
+Attach to any model to creating versions of current state on save for later restoration
+Uses the AuthComponent to log the user doing the save by default.
+
+### Install
+Run the schema into your database to create icing_versions table
+
+  cake schema create -p Icing
+  
+### Usage Examples
+Bind to model you want to auto-version on save
+Default Settings:
+
+	array(
+		'contain' => array(), //only version the current model
+		'versions' => false, //unlimited versions
+		'bind' => false, //don't bind versions on find
+	)
+
+	public $actsAs = array('Icing.Versionable'); //default settings
+
+	public $actsAs = array('Icing.Versionable' => array(
+		'contain' => array('Hour'), //contains for relative model to be saved.
+		'versions' => '5', //how many version to save at any given time (false by default unlimited)
+		'bind' => true, //attach Versionable as HasMany relationship for you onFind and if contained
+	));
+
+Restoring from a version
+
+	$this->Model->restoreVersion(2); //restores the version of id 2.
+
+
 ## DatabaseCacheEngine
 
 Database Cache Engine useful for using the Cache::read/write but usable across multiple servers.

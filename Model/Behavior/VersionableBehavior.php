@@ -19,6 +19,11 @@
   		'versions' => '5', //how many version to save at any given time (false by default unlimited)
   		'bind' => true, //attach Versionable as HasMany relationship for you onFind and if contained
   	));
+  	
+  	Restore from Previous Version
+  	@example
+  	$this->Model->restoreVersion(2); //restores version id 2
+  	
   * @version: since 1.0
   * @author: Nick Baker
   * @link: http://www.webtechnick.com

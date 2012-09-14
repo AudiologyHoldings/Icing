@@ -1,20 +1,20 @@
 <?php
 /**
-  * Behavior for Versioning
+  * Behavior for Versionable
   * 
   * Example Usage:
   *
   * @example 
-  *   var $actsAs = array('Icing.Versioning');
+  *   var $actsAs = array('Icing.Versionable');
   *
   * @example 
-  	var $actsAs = array('Icing.Versioning' => array(
+  	var $actsAs = array('Icing.Versionable' => array(
   		'contain' => array('Hour'), //contains for relative model to be saved.
   		'versions' => '5', //how many version to save at any given time (false by default unlimited)
-  		'bind' => true, //attach Versioning as HasMany relationship for you onFind
+  		'bind' => true, //attach Versionable as HasMany relationship for you onFind and if contained
   	));
   	
-  	Example to attach HasMany on the model you're versioning
+  	Example to attach HasMany on the model you're Versionable
   	
   	public $hasMany = array(
   		'IcingVersion' => array(
@@ -31,7 +31,7 @@
   * @link: http://www.webtechnick.com
   */
 App::uses('AuthComponent', 'Controller/Component');
-class VersioningBehavior extends ModelBehavior {
+class VersionableBehavior extends ModelBehavior {
 	public $IcingVersion = null;
   /**
     * Setup the behavior
@@ -83,7 +83,7 @@ class VersioningBehavior extends ModelBehavior {
   }
   
   /**
-    * Version the delete, mark as deleted in versioning
+    * Version the delete, mark as deleted in Versionable
     * @param Model model
     * @param boolean cascade
     */

@@ -78,16 +78,15 @@ class IcingVersion extends IcingAppModel {
 	* - versions number of versions to save back on paticular record for model
 	*/
 	public function saveVersion($data, $settings = array()){
-		$versions = @$settings['versions'];
-		if($versions){
-			$conditions = array(
-				'model' => $data['model'],
-				'model_id' => $data['model_id'],
-			);
+		$conditions = array(
+			'model' => $data['model'],
+			'model_id' => $data['model_id'],
+		);
+		if(isset($settings['versions']) && $settings['versions']){
 			$count = $this->find('count', array(
 				'conditions' => $conditions 
 			));
-			if($count >= $versions){
+			if($count >= $settings['versions']){
 				$last = $this->find('first', array(
 					'fields' => array('id'),
 					'conditions' => $conditions,
@@ -97,11 +96,10 @@ class IcingVersion extends IcingAppModel {
 			}
 		}
 		//check if this is a minor_revision based on minor_timeframe from settings
-		$timeframe = @$settings['minor_timeframe'];
-		if($timeframe){
+		if(isset($settings['minor_timeframe']) && $settings['minor_timeframe']){
 			$versions_within_timeframe = $this->find('list', array(
 				'conditions' => array_merge($conditions, array(
-					'IcingVersion.created >=' => date("Y-m-d H:i:s", strtotime("-$timeframe seconds", time()))
+					'IcingVersion.created >=' => date("Y-m-d H:i:s", strtotime("-{$settings['minor_timeframe']} seconds", time()))
 				)),
 			));
 			foreach($versions_within_timeframe as $version_id => $model){

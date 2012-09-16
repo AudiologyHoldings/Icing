@@ -1,5 +1,7 @@
 <?php
 App::uses('IcingAppModel', 'Icing.Model');
+App::uses('Set', 'Utility');
+App::uses('Hash', 'Utility');
 /**
  * IcingVersion Model
  *
@@ -57,6 +59,51 @@ class IcingVersion extends IcingAppModel {
 				'order' => array("IcingVersion.created DESC"),
 				'offset' => $number - 1
 			));
+		}
+		return false;
+	}
+	
+	/**
+	* Run a diff between two different versions
+	* if the second version is null use the curent 
+	*/
+	public function diff($model, $one_version_id, $second_version_id = null, $settings = array()){
+		$settings = array_merge(array(
+			'contain' => array()
+		), (array)$settings);
+		$one = $this->findById($one_version_id);
+		if(empty($one)){
+			return false;
+		}
+		$one_data = json_decode($one['IcingVersion']['json'], true);
+		if($second_version_id){
+			$two = $this->findById($second_version_id);
+			$two_data = json_decode($two['IcingVersion']['json'], true);
+		} else {
+			$two_data = ClassRegistry::init($model)->find('first',array(
+				'conditions' => array(
+					"$model.id" => $one['IcingVersion']['model_id']
+				),
+				'contain' => $settings['contain'],
+			));
+		}
+		if(!empty($one_data) && !empty($two_data)){
+			if(class_exists('Hash')){
+				if(!empty($settings['contain'])){
+					$retval = array(
+						'Location' => Hash::diff($two_data[$model], $one_data[$model])
+					);
+					foreach($settings['contain'] as $model_key){
+						$retval[$model_key] = Hash::diff($two_data[$model_key], $one_data[$model_key]);
+					}
+					return $retval;
+				}
+				return Hash::diff($two_data,$one_data);
+			} elseif(class_exists('Set')){
+				return Set::diff($two_data, $one_data);
+			} else {
+				return array_diff($one_data, $two_data);
+			}
 		}
 		return false;
 	}

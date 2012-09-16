@@ -28,6 +28,11 @@
   	$this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
   	$this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
   	
+  	Diffs from a version
+  	@example
+  	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
+		$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); //Gets the diff between two different versions.
+
   * @version: since 1.0
   * @author: Nick Baker
   * @link: http://www.webtechnick.com
@@ -134,6 +139,16 @@ class VersionableBehavior extends ModelBehavior {
 			$this->addError($Model, "No restore version found for params.");
 		}
 		return false;
+	}
+	
+	/**
+	* Return the diff of two versions of a paticular version
+	* @param Model model
+	* @param uuid version to diff against
+	* @param mixed 
+	*/
+	public function diffVersion(Model $Model, $one_version_id, $two_version_id = null){
+		return $this->IcingVersion->diff($Model->alias, $one_version_id, $two_version_id, $this->settings[$Model->alias]);
 	}
 	
 	/**

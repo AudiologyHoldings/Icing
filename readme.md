@@ -41,7 +41,12 @@ Restoring from a version
  	$this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
  	$this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
 
+Diffs from a version
 
+	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
+	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); //Gets the diff between two different versions.
+	
+	
 ## DatabaseCacheEngine
 
 Database Cache Engine useful for using the Cache::read/write but usable across multiple servers.

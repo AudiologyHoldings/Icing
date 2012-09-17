@@ -6,15 +6,22 @@ class IcingUtil extends Object {
 	* @return string of server url
 	*/
 	static function getUrl(){
+		$host = env('HTTP_HOST');
+		$script_filename = env('SCRIPT_FILENAME');
+		$isshell = (strpos($script_filename, 'console')!==false);
+		$envExtended = "";
+		if ($isshell) {
+			$envExtended = preg_replace('#[^a-zA-Z0-9]#', '', env('SCRIPT_FILENAME'));
+		}
 		$check_order = array(
 			'REQUEST_URI',
 			'QUERY_STRING'
 		);
 		foreach($check_order as $key){
 			if(isset($_SERVER[$key]) && !empty($_SERVER[$key])){
-				return $_SERVER[$key];
+				return $_SERVER[$key] . $envExtended;
 			}
-		}
+		} 
 		return null;
 	}
 	

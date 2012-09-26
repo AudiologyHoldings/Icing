@@ -64,7 +64,7 @@ class VersionableBehavior extends ModelBehavior {
 	* @param Model model
 	*/
 	public function beforeSave(Model $Model, $options = array()){
-		if(!isset($options['icing_restore']) || (isset($options['icing_restore']) && $options['icing_restore'])){
+		if(!isset($options['create_version']) || (isset($options['create_version']) && $options['create_version'])){
 			$this->saveVersion($Model);
 		}
 		return $Model->beforeSave();
@@ -131,7 +131,7 @@ class VersionableBehavior extends ModelBehavior {
 		if(!empty($restore)){
 			$model_data = json_decode($restore['IcingVersion']['json'], true);
 			if($Model->alias == $restore['IcingVersion']['model']){
-				return $Model->saveAll($model_data, array('icing_restore' => $create_new_version));
+				return $Model->saveAll($model_data, array('create_version' => $create_new_version));
 			} else {
 				$this->addError($Model, "Restore found was for different model. {$restore['IcingVersion']['model']} != {$Model->alias}");
 			}
@@ -165,7 +165,7 @@ class VersionableBehavior extends ModelBehavior {
 		if(isset($Model->data[$Model->alias][$Model->primaryKey]) && !empty($Model->data[$Model->alias][$Model->primaryKey])){
 			$model_id = $Model->data[$Model->alias][$Model->primaryKey];
 		}
-		if($model_id && !isset($Model->data['icing_restore'])){
+		if($model_id && !isset($Model->data['create_version'])){
 			$data = $Model->data; //cache the data incase the model has some afterfind stuff that sets data
 			$current_data = $Model->find('first', array(
 				'conditions' => array("{$Model->alias}.{$Model->primaryKey}" => $model_id),

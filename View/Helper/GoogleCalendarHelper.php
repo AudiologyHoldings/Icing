@@ -58,12 +58,15 @@ class GoogleCalendarHelper extends AppHelper{
   public function quick($text = null, $options = array()){
   	if(!empty($text)){
 			$options = array_merge(array(
-				'url_only' => false
+				'url_only' => false,
 			), (array)$options);
 			$query = array();
 			$query['action'] = 'TEMPLATE';
 			$query['pprop'] = 'HowCreated:QUICKADD';
 			$query['ctext'] = $text;
+			if(isset($options['details'])){
+				$query['details'] = $options['details'];
+			}
 			$url = $this->url . http_build_query($query);
 			if($options['url_only']){
 				return $url;
@@ -93,12 +96,16 @@ class GoogleCalendarHelper extends AppHelper{
   	$options = array_merge(array(
   		'input' => array(),
   		'submit' => array(),
-  		'create' => array()
+  		'create' => array(),
+  		'details' => null
   	), (array) $options);
   	$form = $this->Form->create(null, array_merge(array('target' => '_blank', 'type' => 'GET', 'url' => $this->url), $options['create']));
   	$form .= $this->Form->input('action', array('type' => 'hidden', 'value' => 'TEMPLATE', 'name' => 'action'));
   	$form .= $this->Form->input('pprop', array('type' => 'hidden', 'value' => 'HowCreated:QUICKADD', 'name' => 'pprop'));
   	$form .= $this->Form->input('ctext', array_merge(array('label' => false, 'div' => false, 'type' => 'text', 'name' => 'ctext'),$options['input']));
+  	if($options['details']){
+  		$form .= $this->Form->input('details', array('type' => 'hidden', 'value' => $options['details'], 'name' => 'details'));
+  	}
   	$form .= $this->Form->submit($text, array_merge(array('div' => false),$options['submit']));
   	$form .= $this->Form->end();
   	return $form;

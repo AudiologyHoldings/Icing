@@ -46,7 +46,11 @@ Diffs from a version
 	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
 	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); //Gets the diff between two different versions.
 	
-	
+Save without creating a version
+
+	$this->Model->save($data, array('create_version' => false));
+
+
 ## DatabaseCacheEngine
 
 Database Cache Engine useful for using the Cache::read/write but usable across multiple servers.

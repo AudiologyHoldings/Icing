@@ -33,6 +33,10 @@
   	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
 		$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); //Gets the diff between two different versions.
 
+		Saving without making a version
+		@example
+		$this->Model->save($data, array('create_version' => false));
+		
   * @version: since 1.0
   * @author: Nick Baker
   * @link: http://www.webtechnick.com

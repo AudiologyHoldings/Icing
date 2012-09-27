@@ -91,7 +91,7 @@ class IcingVersion extends IcingAppModel {
 			if(class_exists('Hash')){
 				if(!empty($settings['contain'])){
 					$retval = array(
-						'Location' => Hash::diff($two_data[$model], $one_data[$model])
+						$model => Hash::diff($two_data[$model], $one_data[$model])
 					);
 					foreach($settings['contain'] as $model_key){
 						$retval[$model_key] = Hash::diff($two_data[$model_key], $one_data[$model_key]);

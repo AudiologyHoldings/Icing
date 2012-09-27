@@ -29,6 +29,16 @@ class GoogleCalendarHelperTest extends CakeTestCase {
 
 		parent::tearDown();
 	}
+	
+	public function testQuick(){
+		$result = $this->GoogleCalendar->quick("Dinner with Michael at 7pm", array('url_only' => true));
+		$this->assertEqual('http://www.google.com/calendar/event?action=TEMPLATE&pprop=HowCreated%3AQUICKADD&ctext=Dinner+with+Michael+at+7pm', $result);
+	}
+	
+	public function testQuickForm(){
+		$result = $this->GoogleCalendar->quickForm();
+		$this->assertEqual('<form action="http://www.google.com/calendar/event?" target="_blank" id="Form" method="get" accept-charset="utf-8"><input type="hidden" name="action" value="TEMPLATE" id="action"/><input type="hidden" name="pprop" value="HowCreated:QUICKADD" id="pprop"/><input name="ctext" type="text" id="ctext"/><input  type="submit" value="Add"/></form>', $result);
+	}
 
 /**
  * testReminder method

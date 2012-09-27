@@ -10,12 +10,22 @@ class GoogleCalendarHelper extends AppHelper{
 	/**
 	* Helpers to load
 	*/
-  public $helpers = array('Html');
+  public $helpers = array('Html','Form');
   
   /**
   * Url to google calendar
   */
   public $url = "http://www.google.com/calendar/event?";
+  
+  /**
+  * Domain, if not null, use domain_url instead of url
+  */
+  public $domain = null;
+  
+  /**
+  * Google Apps domain
+  */
+  public $domain_url = 'http://www.google.com/calendar/hosted/{DOMAIN}/event?';
   
   /**
   * Map to google images
@@ -24,6 +34,75 @@ class GoogleCalendarHelper extends AppHelper{
   	'small' => 'http://www.google.com/calendar/images/ext/gc_button1.gif',
   	'large' => 'http://www.google.com/calendar/images/ext/gc_button6.gif',
   );
+  
+  /**
+  * Add domain settings.
+  * @example 
+  public $helpers = array('Icing.GoogleCalendar' => array('domain' => 'audiologyholdings.com'));
+  */
+  public function __construct(View $View, $settings = array()){
+  	if(isset($settings['domain'])){
+  		$this->domain = $settings['domain'];
+  	}
+  	if($this->domain){
+  		$this->url = str_replace('{DOMAIN}', $this->domain, $this->domain_url);
+  	}
+  	return parent::__construct($View, $settings);
+  }
+  
+  /**
+  * Add quick text link to add to google calendar
+  * @param text to parse
+  * @return string link to clink
+  */
+  public function quick($text = null, $options = array()){
+  	if(!empty($text)){
+			$options = array_merge(array(
+				'url_only' => false
+			), (array)$options);
+			$query = array();
+			$query['action'] = 'TEMPLATE';
+			$query['pprop'] = 'HowCreated:QUICKADD';
+			$query['ctext'] = $text;
+			$url = $this->url . http_build_query($query);
+			if($options['url_only']){
+				return $url;
+			}
+			return $this->Html->link($text, $url);
+  	}
+  	return null;
+  }
+  
+  /**
+  * Create a quick add text form to post to Google Calendar as quick add text
+  * 
+  * @example
+  $this->GoogleCalendar->quickForm('Add', array(
+  	'input' => array('label' => 'Quick Add'),
+  	'create' => array('id' => 'customID),
+  	'submit' => array('class' => 'someClass')
+  ));
+  *
+  * @param string text for end button
+  * @param array of options for form, input, and end
+  * - submit: array of options for FormHelper::end
+  * - input: array of options for FormHelper::input
+  * - create: array of options for FormHelper::create
+  */
+  public function quickForm($text = 'Add', $options = array()){
+  	$options = array_merge(array(
+  		'input' => array(),
+  		'submit' => array(),
+  		'create' => array()
+  	), (array) $options);
+  	$form = $this->Form->create(null, array_merge(array('target' => '_blank', 'type' => 'GET', 'url' => $this->url), $options['create']));
+  	$form .= $this->Form->input('action', array('type' => 'hidden', 'value' => 'TEMPLATE', 'name' => 'action'));
+  	$form .= $this->Form->input('pprop', array('type' => 'hidden', 'value' => 'HowCreated:QUICKADD', 'name' => 'pprop'));
+  	$form .= $this->Form->input('ctext', array_merge(array('label' => false, 'div' => false, 'type' => 'text', 'name' => 'ctext'),$options['input']));
+  	$form .= $this->Form->submit($text, array_merge(array('div' => false),$options['submit']));
+  	$form .= $this->Form->end();
+  	return $form;
+  }
   
   /**
   * Return an image url to click for a google reminder.

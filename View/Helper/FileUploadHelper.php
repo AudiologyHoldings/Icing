@@ -83,9 +83,10 @@ class FileUploadHelper extends AppHelper{
       'autoResize' => true, 
       'resizeThumbOnly' => true
     );
+    $FileUploadSettings = Configure::read('FileUpload');
     
     //setup settings
-    $this->settings = array_merge($this->FileUploadSettings->defaults, $this->options);
+    $this->settings = array_merge($FileUploadSettings, $this->options);
     unset($this->newImage);
   }
   

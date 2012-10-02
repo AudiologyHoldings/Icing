@@ -2,6 +2,30 @@
 
 Portable Package of Utilities for CakePHP
 
+## FileUploadBehavior
+
+Create *Config/file_upload.php* based on *app/Plugin/Icing/Config/file_upload.php.default*
+
+Attach to any model to handle uploads.  Model attached needs name, type, and size fields (customizable)
+
+	var $actsAs = array('Icing.FileUpload');
+	
+	var $actsAs = array(
+		'Icing.FileUpload' => array(
+			'uploadDir'    			=> WEB_ROOT . DS . 'files',
+			'fields'       			=> array('name' => 'file_name', 'type' => 'file_type', 'size' => 'file_size'),
+			'allowedTypes' 			=> array('pdf' => array('application/pdf')),
+			'required'    			=> false,
+			'unique' 						=> false //filenames will overwrite existing files of the same name. (default true)
+			'fileNameFunction' 	=> 'sha1' //execute the Sha1 function on a filename before saving it (default false)
+		)
+	)
+	
+Use the built in helper to resize and cache on the fly
+
+	echo $this->FileUpload->image($image['Upload']['name'], 300); //will resize to 300 px wide and cache to webroot/files/resized by default
+  
+
 ## VersionableBehavior
 
 Attach to any model to creating versions of current state on save for later restoration

@@ -274,9 +274,6 @@ class FileUploadHelper extends AppHelper{
     $options = $this->options; //copy
     //unset the default options
     unset($options['resizedDir'], $options['uploadDir'], $options['imagePathOnly'], $options['autoResize'], $options['resizeThumbOnly']);
-    //unset width only if we're not an outsourced image, we have resize turned on, or we don't have a width to begin with.
-    if(!$this->_isOutsideSource() && ($this->options['resizeThumbOnly'] || !$options['width'])) unset($options['width']); 
-    
     //return the impage path or image html
     if($this->options['imagePathOnly']){
       return $image;

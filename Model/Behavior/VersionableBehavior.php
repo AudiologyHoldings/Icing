@@ -83,14 +83,18 @@ class VersionableBehavior extends ModelBehavior {
 	public function beforeFind(Model $Model, $query = array()){
 		if($this->settings[$Model->alias]['bind']){
 			//Only contain if we have it contained, or if no contain is specified
-			if(!isset($query['contain']) || (isset($query['contain']) && in_array('IcingVersion', $query['contain']))){
+			if(!isset($query['contain']) || (isset($query['contain']) && (in_array('IcingVersion', $query['contain']) || key_exists('IcingVersion', $query['contain'])))){
+				$bind_options = array(
+					'className' => 'Icing.IcingVersion',
+					'foreignKey' => 'model_id',
+					'conditions' => array("IcingVersion.model" => $Model->alias)
+				);
+				if(isset($query['contain']['IcingVersion'])){
+					$bind_options = array_merge($bind_options, $query['contain']['IcingVersion']);
+				}
 				$Model->bindModel(array(
 					'hasMany' => array(
-						'IcingVersion' => array(
-							'className' => 'Icing.IcingVersion',
-							'foreignKey' => 'model_id',
-							'conditions' => array("IcingVersion.model" => $Model->alias)
-						)
+						'IcingVersion' => $bind_options
 					)
 				));
 			}

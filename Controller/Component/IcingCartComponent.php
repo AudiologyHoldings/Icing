@@ -9,6 +9,7 @@
 	 'cart' => array(
 		 'model' => 'Item',
 		 'contain' => array('Status','Upload','Category'),
+		 'allowQuantity' => true
 	 )
 	);
 *
@@ -16,7 +17,8 @@
 *
 * public $components = array('IcingCart' => array(
 		'model' => 'Item', //Primary model to cart.
-		'contain' => array('Status','Upload','Category') //Contain on your model to include in cart
+		'contain' => array('Status','Upload','Category'), //Contain on your model to include in cart
+		'allowQuantity' => true
   ));
 *
 * @version 1.1
@@ -39,6 +41,11 @@ class IcingCartComponent extends Component {
 	* Contain to put on model
 	*/
 	public $contain = null;
+	
+	/**
+	* Allow quantity setting, true by default
+	*/
+	public $allowQuantity = true;
 	
 	/**
 	* Actual model for use.
@@ -107,29 +114,59 @@ class IcingCartComponent extends Component {
 	/**
 	* Add the item to the cart
 	* @param mixed item_id
+	* @param int quantity (must be greater than 0)
 	* @param boolean bypass (if true, bypass inCart check) allows for item to be in cart more than once
 	* @return boolean success
 	*/
-	public function add($item_id = null, $bypass_check = false){
+	public function add($item_id = null, $quantity = 1, $bypass_check = false){
     if(!$item_id){
     	$this->error('No Item ID given.');
     	return false;
+    }
+    if((int)$quantity < 1){
+    	$quantity = 1;
     }
     $this->loadModel();
     //Add the item to the cart.
     if($cart_item = $this->Model->findById($item_id)){
     	if($this->runCallback('allowCart', $cart_item)){
-				if($bypass_check || !$this->inCart($cart_item)){
-					$this->__runCallback('itterateCart', $cart_item);
-					$this->cart[] = $cart_item;
-					$this->save();
-					return true;
-				} else {
-					
-				}
+    		$key = $this->inCart($cart_item);
+    		if($key === false || $bypass_check || $this->allowQuantity){
+    			$this->runCallback('itterateCart', $cart_item);
+    			if($key){
+    				$this->cart[$key][$this->Model->alias]['icing_quantity'] += $quantity;
+    			} else {
+    				$cart_item[$this->Model->alias]['icing_quantity'] = $quantity;
+    				$this->cart[] = $cart_item;
+    			}
+    			$this->save();
+    			return true;
+    		}
 			}
     } else {
       $this->error('Item not found');
+    }
+    return false;
+  }
+  
+  /**
+  * Update the quantity of the cart
+  * @param mixed item_id
+  * @param int quantity
+  * @return mixed new quantity or false if item not found.
+  */
+  public function updateQuantity($item_id, $quantity){
+  	if(!$item_id || !$quantity){
+  		$this->error('Item ID and quantity required');
+  		return false;
+  	}
+  	$this->loadModel();
+    if($cart_item = $this->Model->findById($item_id)){
+    	$key = $this->inCart($cart_item);
+    	if($key !== false){
+    		$this->cart[$key][$this->Model->alias]['icing_quantity'] = (int) $quantity;
+    		$this->save();
+    	}
     }
     return false;
   }
@@ -139,7 +176,7 @@ class IcingCartComponent extends Component {
   * @param mixed item_id
   * @return boolean success
   */
-  function remove($item_id = null){
+  public function remove($item_id = null){
     if(!$item_id){
       $this->error('No Item ID given.');
     	return false;

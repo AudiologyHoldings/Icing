@@ -4,7 +4,7 @@
 *
 * Setup
 *
-* Create a config/recaptcha.php with the following
+* Create a config/icing_cart.php with the following
 	$config = array(
 	 'cart' => array(
 		 'model' => 'Item',
@@ -73,8 +73,8 @@ class IcingCartComponent extends Component {
 	public function __construct(ComponentCollection $collection, $settings = array()){
 		parent::__construct($collection, $settings);
 		if(empty($settings)){
-			Configure::load('cart');
-			$this->_set(Configure::read('cart'));
+			Configure::load('icing_cart');
+			$this->_set(Configure::read('icing_cart'));
 		}	else {
 			$this->_set($settings);
 		}
@@ -144,7 +144,7 @@ class IcingCartComponent extends Component {
     		}
 			}
     } else {
-      $this->error('Item not found');
+      $this->error("Item not found: $item_id");
     }
     return false;
   }

@@ -131,12 +131,12 @@ class IcingCartComponent extends Component {
     if($cart_item = $this->Model->findById($item_id)){
     	if($this->runCallback('allowCart', $cart_item)){
     		$key = $this->inCart($cart_item);
-    		if($key === false || $bypass_check || $this->allowQuantity){
+    		if($key === false || $bypass_check || ($key !== false && $this->allowQuantity)){
     			$this->runCallback('itterateCart', $cart_item);
-    			if($key){
-    				$this->cart[$key][$this->Model->alias]['icing_quantity'] += $quantity;
+    			if($key !== false){
+    				$this->cart[$key]['icing_quantity'] += $quantity;
     			} else {
-    				$cart_item[$this->Model->alias]['icing_quantity'] = $quantity;
+    				$cart_item['icing_quantity'] = $quantity;
     				$this->cart[] = $cart_item;
     			}
     			$this->save();
@@ -153,7 +153,7 @@ class IcingCartComponent extends Component {
   * Update the quantity of the cart
   * @param mixed item_id
   * @param int quantity
-  * @return mixed new quantity or false if item not found.
+  * @return boolean success
   */
   public function updateQuantity($item_id, $quantity){
   	if(!$item_id || !$quantity){
@@ -164,8 +164,9 @@ class IcingCartComponent extends Component {
     if($cart_item = $this->Model->findById($item_id)){
     	$key = $this->inCart($cart_item);
     	if($key !== false){
-    		$this->cart[$key][$this->Model->alias]['icing_quantity'] = (int) $quantity;
+    		$this->cart[$key]['icing_quantity'] = (int) $quantity;
     		$this->save();
+    		return true;
     	}
     }
     return false;

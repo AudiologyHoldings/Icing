@@ -243,7 +243,7 @@ class IcingCartComponent extends Component {
 	*/ 
 	private function runCallback($callback, $passedIn = null){
 		$this->loadModel();
-		if(is_callable(array($this->Model, $callback))){
+		if(method_exists($this->Model, $callback)){
 			return call_user_func_array(array($this->Model, $callback), array($passedIn));
 		}
 		return true;

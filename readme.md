@@ -4,6 +4,19 @@ Portable Package of Utilities for CakePHP
 
 # Helpers
 
+* CsvHelper
+* CkeditorHelper
+* GoogleCalendarHelper
+
+# Behaviors
+
+* FileUploadBehavior
+* VersionableBehavior
+
+# Libraries
+
+* DatabaseCacheEngine
+
 ## CsvHelper
 
 Easily create and server CSV files.
@@ -38,10 +51,11 @@ Build reminder links and quick add forms to intergrate with a logged in google c
 
 
 	$this->GoogleCalendar->quickForm('Add', array(
-  	'input' => array('label' => 'Quick Add'),
-  	'create' => array('id' => 'customID),
-  	'submit' => array('class' => 'someClass')
-  ));
+		'input' => array('label' => 'Quick Add'),
+		'create' => array('id' => 'customID),
+		'submit' => array('class' => 'someClass')
+	));
+
 
 # Behaviors
 
@@ -117,6 +131,8 @@ Save without creating a version
 
 	$this->Model->save($data, array('create_version' => false));
 
+
+# Libraries
 
 ## DatabaseCacheEngine
 

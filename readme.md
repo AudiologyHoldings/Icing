@@ -2,6 +2,49 @@
 
 Portable Package of Utilities for CakePHP
 
+# Helpers
+
+## CsvHelper
+
+Easily create and server CSV files.
+
+	//some view.ctp with $data of a model
+	foreach($data as $record){
+		$row = array_values($record['Model']);
+		$this->Csv->addRow($row);
+	}
+	echo $this->Csv->render('filename.csv');
+	
+## CkeditorHelper
+
+Easily add Ckeditors to your forms.  Integrates with Ckfinder easily
+
+	echo $this->Ckeditor->replace('ContentBody', array('ckfinder' => true, 'forcePasteAsPlainText' => 'true'));
+	
+## GoogleCalendarHelper
+
+Build reminder links and quick add forms to intergrate with a logged in google calendar user.
+
+	public $helpers = array('Icing.GoogleCalendar' => array('domain' => 'audiologyholdings.com'));
+
+	$this->GoogleCalendar->reminder('small', array(
+		'start' => 'Aug 15th, 2013 8:00pm',
+		'end' => 'Aug 15th, 2013 9:00pm',
+		'title' => 'Test Event',
+		'details' => 'Details of Event',
+		'location' => 'Albuquerque, NM',
+		'add' => array('nurvzy@gmail.com', 'nick.baker@audiologyholdings.com')
+	));
+
+
+	$this->GoogleCalendar->quickForm('Add', array(
+  	'input' => array('label' => 'Quick Add'),
+  	'create' => array('id' => 'customID),
+  	'submit' => array('class' => 'someClass')
+  ));
+
+# Behaviors
+
 ## FileUploadBehavior
 
 Create *Config/file_upload.php* based on *app/Plugin/Icing/Config/file_upload.php.default*

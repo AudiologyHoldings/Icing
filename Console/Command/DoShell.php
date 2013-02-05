@@ -23,8 +23,12 @@
  */
 App::uses('AppShell', 'Console/Command');
 class DoShell extends AppShell {
-	var $uses = array();
-	var $attach = null;
+
+	/**
+	 * var array
+	 * (not set here, Model will be passed in as first arg)
+	 */
+	public $uses = array();
 
 	/**
 	 * cake standardized argument parser

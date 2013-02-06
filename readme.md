@@ -13,6 +13,10 @@ Portable Package of Utilities for CakePHP
 * FileUploadBehavior
 * VersionableBehavior
 
+# Datasources
+
+* ArraySource
+
 # Libraries
 
 * DatabaseCacheEngine
@@ -131,6 +135,50 @@ Save without creating a version
 
 	$this->Model->save($data, array('create_version' => false));
 
+# DataSources
+
+## ArraySource
+
+Allows for an array dataset instead of sql database but can be assosiated with other model data with normal cakephp assosiations and finds.
+
+### Example
+
+	//Config/database.php
+	var $array = array(
+		'datasource' => 'Icing.ArraySource'
+	);
+	
+	//Model/ConsumerGuide.php
+	App::uses('AppModel','Model');
+	class ConsumerGuide extends AppModel {
+		public $name = 'ConsumerGuide';
+		public $useDbConfig = 'array';
+		public $displayField = 'name';
+		public $primaryKey = 'type';
+		
+		public $records = array(
+			array(
+				'type' => 'loved_one',
+				'text' => "Do you have a loved one with hearing loss and don't know where to turn? Download our free guide, which will give you the information you need to help your family member or friend with hearing loss.",
+				'path' => 'Free_Guide_-_Hearing_and_Your_Loved_Ones.pdf',
+				'name' => 'Free Guide - Hearing and Your Loved Ones',
+				'thumb' => 'hearing_and_your_loved_ones.png',
+			),
+		);
+	}
+	
+	//Example Uses
+	$this->ConsumerGuide->find('first');
+	$this->ConsumerGuide->find('all', array(
+		'conditions' => array(
+			'ConsumerGuide.type' => 'loved_one',
+		),
+		'fields' => array('ConsumerGuide.text','ConsumerGuide.path'),
+		'order' => array('ConsumerGuide.name ASC'),
+		'limit' => 2,
+	));
+	$this->ConsumerGuide->field('path', array('ConsumerGuide.type' => 'loved_one'));
+	$this->ConsumerGuide->findByType('loved_one');
 
 # Libraries
 

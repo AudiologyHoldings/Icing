@@ -46,6 +46,10 @@ class DoShell extends AppShell {
 				'help' => 'The Model\'s method',
 				'required' => false,
 			),
+			'params' => array(
+				'help' => 'optional params to pass',
+				'required' => false,
+			)
 		));
 		$parser->addOptions(array(
 			'plugin' => array(

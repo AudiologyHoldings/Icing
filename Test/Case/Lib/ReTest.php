@@ -149,4 +149,33 @@ class AsTest extends CakeTestCase {
 		$this->assertEquals(Re::pluckValid($input, array('/User/empty', '/User/id')), 1); // /User/empty not valid, so we jump to second path
 		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/User/empty')), null); // empty match = default
 	}
+
+
+	public function testPluckIsValid() {
+		$input = array('User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)));
+		$this->assertTrue(Re::pluckIsValid($input, '/User/id'));
+		$this->assertTrue(Re::pluckIsValid($input, '/User/name'));
+		$this->assertTrue(Re::pluckIsValid($input, '/User/nest/id'));
+		$this->assertTrue(Re::pluckIsValid($input, '/User/nest/name'));
+		$this->assertTrue(Re::pluckIsValid($input, '/User/nest'));
+		$this->assertTrue(Re::pluckIsValid($input, '/User'));
+		$this->assertFalse(Re::pluckIsValid($input, '/bad-path'));
+		$this->assertFalse(Re::pluckIsValid($input, '/nest'));
+		$this->assertFalse(Re::pluckIsValid($input, '/User/empty'));
+		$this->assertFalse(Re::pluckIsValid($input, '/User/null'));
+		$this->assertTrue(Re::pluckIsValid($input, '/User/true'));
+		$this->assertFalse(Re::pluckIsValid($input, '/User/false'));
+		$this->assertTrue(Re::pluckIsValid($input, '/User/zero'));
+		$this->assertFalse(Re::pluckIsValid($input, '/User/nested/emtpy'));
+		// now look for array of paths (first match returns)
+		$this->assertTrue(Re::pluckIsValid($input, array('/User/id', '/User/id')));
+		$this->assertTrue(Re::pluckIsValid($input, array('/User/id', '/User/name')));
+		$this->assertTrue(Re::pluckIsValid($input, array('/User/name', '/User/id')));
+		$this->assertTrue(Re::pluckIsValid($input, array('/User/id', '/User/bad-path')));
+		$this->assertTrue(Re::pluckIsValid($input, array('/User/bad-path', '/User/id')));
+		$this->assertTrue(Re::pluckIsValid($input, array('/bad-path', '/User/id')));
+		$this->assertTrue(Re::pluckIsValid($input, array('/User/empty', '/User/id')));
+		$this->assertFalse(Re::pluckIsValid($input, array('/User/bad-path', '/User/empty')));
+		$this->assertFalse(Re::pluckIsValid($input, array('/User/bad-path', '/User/alt-bad-path')));
+	}
 }

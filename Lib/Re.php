@@ -280,4 +280,18 @@ class Re {
 		return $default;
 	}
 
+	/**
+	 * this is a shortcut for Re::isValid(Re::pluckValid())
+	 * @param array $data
+	 * @param mixed $paths
+	 * @return boolean
+	 */
+	public static function pluckIsValid($data, $paths=null) {
+		if (empty($paths)) {
+			return Re::isValid($data);
+		}
+		$retval = Re::pluckValid($data, $paths);
+		return Re::isValid($retval);
+	}
+
 }

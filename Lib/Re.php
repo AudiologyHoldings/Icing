@@ -145,11 +145,6 @@ class Re {
 		if (is_array($data) && count($data)==1) {
 			$data = array_shift($data);
 		}
-		if (is_bool($allow) || is_int($allow)) {
-			$allow = array($allow);
-		} else {
-			$allow = Re::arrayCSV($allow);
-		}
 		$disallowDefaults = array('0000-00-00', '0000-00-00 00:00:00', '', null, false);
 		$disallow = array_merge($disallowDefaults, Re::arrayCSV($disallow));
 		if (is_array($data)) {
@@ -159,12 +154,12 @@ class Re {
 		} elseif (in_array($data, $disallow, true)) {
 			return false;
 		}
-		if ($input===0 || $input==='0') {
+		if ($data===0 || $data==='0') {
 			// allow 0 unless explicitly disallowed
 			// if disallowed, it would have already returned
 			return true;
 		}
-		return empty($input);
+		return (!empty($data));
 	}
 
 	/**
@@ -200,5 +195,89 @@ class Re {
 		}
 	}
 
+	/**
+	 * returns the value of the $path from the input $data
+	 * this is baically Set::extract() but it returns the first
+	 * value match for a path, instead of an array of matches
+	 * also, you can pass in an array of possible paths and you get the first
+	 * @param array $data
+	 * @param mixed @paths
+	 *                  ex: '/User/id' or '/User'
+	 *                  or: array('/User/id', '/Alt/user_id')
+	 * @param mixed $default null - returned if no path found
+	 * @return mixed
+	 */
+	public static function pluck($data, $paths, $default=null) {
+		if (is_array($paths)) {
+			foreach ($paths as $path) {
+				$retval = Re::pluck($data, $path, '[[REno-defaultRE]]');
+				if ($retval!='[[REno-defaultRE]]') {
+					return $retval;
+				}
+			}
+			return $default;
+		}
+		$path = $paths;
+		unset($paths);
+		if (array_key_exists($path, $data)) {
+			return $data['path'];
+		}
+		$retval = Set::extract($data, $path);
+		if (!empty($retval)) {
+			if (count($retval) == 1) {
+				$retval = current($retval);
+			}
+			if (is_array($retval) && strpos($path, key($retval))!==false) {
+				$retval = current($retval);
+			}
+			return $retval;
+		}
+		return $default;
+	}
+
+	/**
+	 * returns the value of the $path from the input $data
+	 * but only if it isValid()
+	 * this is baically Set::extract() but it returns the first
+	 * value match for a path, which is valid,
+	 * instead of an array of matches
+	 * also, you can pass in an array of possible paths and you get the
+	 * first valid match
+	 * @param array $data
+	 * @param mixed @paths
+	 *                  ex: '/User/id' or '/User'
+	 *                  or: array('/User/id', '/Alt/user_id')
+	 * @param mixed $default null - returned if no path found
+	 * @return mixed
+	 */
+	public static function pluckValid($data, $paths, $default=null) {
+		if (is_array($paths)) {
+			foreach ($paths as $path) {
+				$retval = Re::pluck($data, $path, '[[REno-defaultRE]]');
+				if ($retval!='[[REno-defaultRE]]' && Re::isValid($retval)) {
+					return $retval;
+				}
+			}
+			return $default;
+		}
+		$path = $paths;
+		unset($paths);
+		if (array_key_exists($path, $data) && Re::isValid($data['path'])) {
+			return $data['path'];
+		}
+		$retval = Set::extract($data, $path);
+		if (!empty($retval)) {
+			if (count($retval) == 1) {
+				$retval = current($retval);
+			}
+			if (is_array($retval) && strpos($path, key($retval))!==false) {
+				$retval = current($retval);
+			}
+			if (Re::isValid($retval)) {
+				return $retval;
+			}
+		}
+		return $default;
+	}
 
 }

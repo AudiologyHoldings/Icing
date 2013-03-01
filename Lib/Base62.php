@@ -13,7 +13,7 @@ Class Base62 {
 	 * (or you can change the ordering of this list, for obfuscated conversion)
 	 * @param $chars
 	 */
-	static $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	public static $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 	/**
 	 * Converts a base 10 number to any other base.
@@ -21,7 +21,7 @@ Class Base62 {
 	 * @param int $int   Decimal number
 	 * @return string $base62
 	 */
-	function encode($int) {
+	public static function encode($int) {
 		$base = strlen(Base62::$chars);
 		$str = '';
 		do {
@@ -38,7 +38,7 @@ Class Base62 {
 	 * @param string $base62
 	 * @return int $int   Number converted to base 10
 	 */
-	function decode($base62) {
+	public static function decode($base62) {
 		$base = strlen(Base62::$chars);
 		$len = strlen($base62);
 		$val = 0;

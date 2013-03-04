@@ -146,6 +146,10 @@ class AsTest extends CakeTestCase {
 		$this->assertEquals(Re::pluckValid($input, array('/User/id', '/User/bad-path')), 1);
 		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/User/id')), 1);
 		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/User/id')), 1);
+		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/User/false')), null);
+		$this->assertEquals(Re::pluckValid($input, array('/User/false', '/bad-path')), null);
+		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/User/true')), true);
+		$this->assertEquals(Re::pluckValid($input, array('/User/true', '/bad-path')), true);
 		$this->assertEquals(Re::pluckValid($input, array('/User/empty', '/User/id')), 1); // /User/empty not valid, so we jump to second path
 		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/User/empty')), null); // empty match = default
 	}
@@ -175,6 +179,8 @@ class AsTest extends CakeTestCase {
 		$this->assertTrue(Re::pluckIsValid($input, array('/User/bad-path', '/User/id')));
 		$this->assertTrue(Re::pluckIsValid($input, array('/bad-path', '/User/id')));
 		$this->assertTrue(Re::pluckIsValid($input, array('/User/empty', '/User/id')));
+		$this->assertTrue(Re::pluckIsValid($input, array('/User/empty', '/User/true')));
+		$this->assertTrue(Re::pluckIsValid($input, array('/User/true', '/User/empty')));
 		$this->assertFalse(Re::pluckIsValid($input, array('/User/bad-path', '/User/empty')));
 		$this->assertFalse(Re::pluckIsValid($input, array('/User/bad-path', '/User/alt-bad-path')));
 	}

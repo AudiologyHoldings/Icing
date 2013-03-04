@@ -211,7 +211,7 @@ class Re {
 		if (is_array($paths)) {
 			foreach ($paths as $path) {
 				$retval = Re::pluck($data, $path, '[[REno-defaultRE]]');
-				if ($retval!='[[REno-defaultRE]]') {
+				if ($retval!=='[[REno-defaultRE]]') {
 					return $retval;
 				}
 			}
@@ -254,7 +254,7 @@ class Re {
 		if (is_array($paths)) {
 			foreach ($paths as $path) {
 				$retval = Re::pluck($data, $path, '[[REno-defaultRE]]');
-				if ($retval!='[[REno-defaultRE]]' && Re::isValid($retval)) {
+				if ($retval!=='[[REno-defaultRE]]' && Re::isValid($retval)) {
 					return $retval;
 				}
 			}

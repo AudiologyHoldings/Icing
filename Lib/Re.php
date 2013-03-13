@@ -34,7 +34,7 @@ class Re {
 		// get all first level nested objects (if any)
 		foreach ( $input as $key => $val ) {
 			if (is_object($val)) {
-				$input[$key] = asArray($val);
+				$input[$key] = Re::asArray($val);
 			}
 		}
 		return $input;

@@ -103,6 +103,23 @@ class VersionableBehavior extends ModelBehavior {
 	}
 	
 	/**
+	* Bind the icing model on demand, this is useful right before a call in which you want to contain
+	* but don't have the association.
+	*/
+	public function bindIcingVersion(Model $Model){
+		$bind_options = array(
+			'className' => 'Icing.IcingVersion',
+			'foreignKey' => 'model_id',
+			'conditions' => array("IcingVersion.model" => $Model->alias)
+		);
+		$Model->bindModel(array(
+			'hasMany' => array(
+				'IcingVersion' => $bind_options
+			)
+		));
+	}
+	
+	/**
 	* Version the delete, mark as deleted in Versionable
 	* @param Model model
 	* @param boolean cascade

@@ -21,6 +21,7 @@
  * @author alan@zeroasterisk.com
  * @link https://github.com/AudiologyHoldings/Icing
  */
+App::uses('ClassRegistry', 'Utility');
 App::uses('AppShell', 'Console/Command');
 class DoShell extends AppShell {
 

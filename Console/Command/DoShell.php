@@ -60,7 +60,11 @@ class DoShell extends AppShell {
 			'behavior' => array(
 				'short' => 'b',
 				'help' => '(optional) Attach this behavior on setup',
-			)
+			),
+			'json' => array(
+				'short' => 'j',
+				'help' => '(optional) JSON array of parameters specified rather than a literal string',
+			),
 		));
 		return $parser;
 	}
@@ -110,8 +114,13 @@ class DoShell extends AppShell {
 			$this->help();
 			return $this->error("Error: methodName [{$methodName}] doesn't exist on Model {$modelName} (internal error 2)");
 		}
-		$this->out("<info>Running: {$Model->name}->{$methodName}(".json_encode($this->args).")</info>");
-		$response = call_user_func_array(array($Model, $methodName), $this->args);
+		if (!empty($json)) {
+			$args = json_decode($this->args[0]);
+		} else {
+			$args = $this->args;
+		}
+		$this->out("<info>Running: {$Model->name}->{$methodName}(".json_encode($args).")</info>");
+		$response = call_user_func_array(array($Model, $methodName), $args);
 		if ($response===false) {
 			$this->out("<error>Failure to run: {$Model->name}->{$methodName}()</error>");
 		} else {

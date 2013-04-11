@@ -217,6 +217,12 @@ class Re {
 			}
 			return $default;
 		}
+		if (empty($data)) {
+			return $default;
+		}
+		if (!is_array($data)) {
+			return $data;
+		}
 		$path = $paths;
 		unset($paths);
 		if (array_key_exists($path, $data)) {

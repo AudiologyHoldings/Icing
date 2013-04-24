@@ -7,6 +7,7 @@ Portable Package of Utilities for CakePHP
 * CsvHelper
 * CkeditorHelper
 * GoogleCalendarHelper
+* TwitterHelper
 
 # Behaviors
 
@@ -59,6 +60,27 @@ Build reminder links and quick add forms to intergrate with a logged in google c
 		'create' => array('id' => 'customID),
 		'submit' => array('class' => 'someClass')
 	));
+
+## TwitterHelper
+
+Build share, mention and hashtag buttons
+
+	//Config/twitter.php
+	$config = array(
+		'Twitter' => array(
+			'handle' => 'WebTechNick',
+			'locale' => 'en',
+			'buffer' => true,
+		)
+	);
+
+	public $helpers = array('Icing.Twitter' => array(
+		'handle' => 'WebTechNick',
+		'locale' => 'en',
+		'buffer' => true,
+	));
+
+	<?php echo $this->Twitter->share('Tweet', '/pledge', array('text' => 'Take the hearing health pledge!')); ?>
 
 
 # Behaviors

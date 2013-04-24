@@ -21,6 +21,8 @@ Portable Package of Utilities for CakePHP
 # Libraries
 
 * DatabaseCacheEngine
+* AppTestCase
+* AppTestFixture
 
 ## CsvHelper
 
@@ -242,3 +244,22 @@ If you don't plan on storing anything more than 255 characters of json_encoded d
 
 	Cache::write('somekey', 'somevalue', 'database');
 	Cache::read('somekey', 'database');
+	
+## AppTestCase
+
+Easy way to load fixture automatically and in groups.  Look at the file for more usage examples
+
+	App::uses('AppTestCase', 'Icing.Lib');
+	Configure::load('app_test_fixtures');
+	class WhateverTest extends AppTestCase {
+		...
+	}
+	
+## AppTestFixture
+
+Fixes missing fields of records with bogus data so you don't have to worry about it. Look at the file for more usage examples 
+	
+	App::uses('AppTestFixture', 'Icing.Lib');
+	class UserFixture extends AppTestFixture {
+		...
+	}

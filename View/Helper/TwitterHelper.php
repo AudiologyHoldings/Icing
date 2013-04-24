@@ -96,6 +96,21 @@ class TwitterHelper extends AppHelper {
 	}
 	
 	/**
+	* Follow button
+	* @param string text text to show
+	* @param array of options
+	*/
+	public function follow($text = null, $options = array()){
+		$button_url = '/' . $this->settings['handle'];
+		$button_options = array('class' => 'twitter-follow-button');
+		if($text == null){
+			$text = 'Follow @' . $this->settings['handle'];
+		}
+		$button_options = array_merge($this->parseOptionsToButtonOptions($options), $button_options);
+		return $this->button($text, $button_url, $button_options);
+	}
+	
+	/**
 	* Loads the javascript, will only load if hasn't been loaded before.
 	* @param boolean overwrite, if true will return the script call again (default false)
 	* @return string of script tag loading twitter library.
@@ -104,11 +119,7 @@ class TwitterHelper extends AppHelper {
 		$retval = "";
 		if($overwrite || !$this->loaded){
 			$script = "!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');";
-			if($this->config['buffer']){
-				$this->Js->buffer($script);
-			} else {
-				$retval = $this->Html->scriptBlock($script);
-			}
+			$retval = $this->Html->scriptBlock($script);
 			$this->loaded = true;
 		}
 		return $retval;
@@ -123,8 +134,8 @@ class TwitterHelper extends AppHelper {
 	*/
 	protected function button($text = 'Tweet', $url = null, $options = array()){
 		$options = array_merge(array(
-				'data-lang' => $this->config['locale'],
-				'data-related' => $this->config['handle'],
+				'data-lang' => $this->settings['locale'],
+				'data-via' => $this->settings['handle'],
 			),(array)$options
 		);
 		return $this->Html->link($text, $this->baseUrl . $url, $options) . $this->init();
@@ -135,6 +146,9 @@ class TwitterHelper extends AppHelper {
 	* @param array of options
 	*  text - text default text of tweet
 	*  large - boolean show large button
+	*  count - boolean show count
+	*  hashtags - mixed array or string of hashtags to add
+	*  related - mixed array or string of related handles
 	*/
 	private function parseOptionsToButtonOptions($options = array()){
 		$button_options = array();
@@ -143,6 +157,23 @@ class TwitterHelper extends AppHelper {
 		}
 		if(isset($options['large']) && $options['large']){
 			$button_options['data-size'] = 'large';
+		}
+		if(isset($options['count']) && $options['count']){
+			$button_options['data-show-count'] = 'true';
+		}
+		if(isset($options['hashtags'])){
+			if(is_array($options['hashtags'])){
+				$button_options['data-hashtags'] = implode(",",$options['hashtags']);
+			} else {
+				$button_options['data-hashtags'] = $options['hashtags'];
+			}
+		}
+		if(isset($options['related'])){
+			if(is_array($options['related'])){
+				$button_options['data-related'] = implode(",",$options['related']);
+			} else {
+				$button_options['data-related'] = $options['related'];
+			}
 		}
 		return $button_options;
 	}

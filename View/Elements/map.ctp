@@ -33,7 +33,7 @@ $center = isset($center) ? $center : array('lat' => 0, 'lon' => 0);
 	<?php echo $this->Html->script('http://maps.google.com/maps/api/js?sensor=false'); ?>
 	
 	<script type="text/javascript">
-	function loadMap(){
+	function icingLoadMap(){
 		var latlon = new google.maps.LatLng(<?php echo $center['lat']; ?>, <?php echo $center['lon']; ?>);
 		var myOptions = {
 			zoom: <?php echo $zoom; ?>,
@@ -41,31 +41,36 @@ $center = isset($center) ? $center : array('lat' => 0, 'lon' => 0);
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
 		var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
-		
 		var points = <?php echo $json_points; ?>;
+		var marker;
+		var infowindow;
 		for(var i = 0; i < points.length ; i++){
-			var contentString = "<div class='map_info_window'>" + points[i].info + "</div>";
-			var infowindow = new google.maps.InfoWindow({
-				content: contentString
+			infowindow = new google.maps.InfoWindow({
+				content: "<div class='map_info_window'>" + points[i].info + "</div>"
 			});
-			var latlon = new google.maps.LatLng(points[i].lat, points[i].lon);
-			var marker = new google.maps.Marker({
-				position: latlon,
+			marker = new google.maps.Marker({
+				position: new google.maps.LatLng(points[i].lat, points[i].lon),
 				map: map,
 				title: points[i].title
 			});
-			google.maps.event.addListener(marker, 'click', function() {
-				infowindow.open(map,marker);
-			});
+			icingAddMarker(map, marker, infowindow);
 			if(points.length == 1){
 				infowindow.open(map,marker);
 			}
 		}
+	}
+	function icingAddMarker(map, marker, infowindow){
+		google.maps.event.addListener(marker, 'click', function() {
+			infowindow.open(map,marker);
+		});
+		google.maps.event.addListener(map, 'click', function() {
+			infowindow.close();
+		});
 	}
 	</script>
 	
 	<div id="map_canvas" style="width: <?php echo $width; ?>; height: <?php echo $height; ?>;">
 	</div>
 	
-	<?php echo $this->Js->buffer('loadMap();'); ?>
+	<?php echo $this->Js->buffer('icingLoadMap();'); ?>
 <?php endif ;?>

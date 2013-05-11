@@ -303,6 +303,28 @@ class AppTestCase extends CakeTestCase {
 	}
 
 	/**
+	 * Assertion Shortcut
+	 *   assert that all of the keys provided in $expect
+	 *   match keys/values in $result
+	 *
+	 * Flexible:
+	 *   order doesn't matter
+	 *   extra keys in $result don't matter
+	 *
+	 * so just pass into $expect the keys you care about, and the others will
+	 *   be ignored (useful for UUIDs, autoids, timestampes, etc)
+	 *
+	 * @param array $expect
+	 * @param array $result
+	 */
+	public function assertArrayCompare($expect, $result, $message = 'sorry, the arrays did not match') {
+		$compare = array_intersect_key($result, $expect);
+		asort($expect);
+		asort($compare);
+		return $this->assertEquals($expect, $compare, $message);
+	}
+
+	/**
 	 * Asserts that data are valid given Model validation rules
 	 * Calls the Model::validate() method and asserts the result
 	 *

@@ -33,7 +33,9 @@ class Re {
 		}
 		// get all first level nested objects (if any)
 		foreach ( $input as $key => $val ) {
-			if (is_object($val)) {
+			if (is_object($val)) { // Recurse into objects
+				$input[$key] = Re::asArray($val);
+			} elseif (is_array($val)) { // Recurse into arrays of arrays
 				$input[$key] = Re::asArray($val);
 			}
 		}

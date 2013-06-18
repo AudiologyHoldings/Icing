@@ -58,4 +58,3 @@ class CkeditorHelper extends AppHelper{
 		");
 	}
 }
-?>

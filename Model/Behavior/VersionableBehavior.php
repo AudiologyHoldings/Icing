@@ -41,7 +41,8 @@
   * @author: Nick Baker
   * @link: http://www.webtechnick.com
   */
-App::uses('AuthComponent', 'Controller/Component');
+App::import('Component', 'Auth');
+//App::uses('AuthComponent', 'Controller/Component');
 App::uses('IcingUtil', 'Icing.Lib');
 class VersionableBehavior extends ModelBehavior {
 	public $IcingVersion = null;

@@ -75,6 +75,7 @@ class TokeninputableBehavior extends ModelBehavior {
 	public function afterSave($Model) {
 		#extract($this->settings[$Model->alias]);
 		if (!$Model->id) {
+			die('TokeninputableBehavior::afterSave() missing the id');
 			throw new OutOfBoundsException('TokeninputableBehavior::afterSave() missing the id');
 		}
 		foreach ($Model->hasMany as $assocName => $assocConf) {

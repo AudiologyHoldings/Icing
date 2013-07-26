@@ -41,6 +41,9 @@ class TypeaheadableBehavior extends ModelBehavior {
 		$this->settings[$model->alias] = array_merge($this->_defaults, $config);
 	}
 
+	public function beforeValidate($Model) {
+		return $this->beforeSave($Model);
+	}
 	/**
 	 * Before save method. Called before all saves
 	 *
@@ -84,12 +87,14 @@ class TypeaheadableBehavior extends ModelBehavior {
 	public function nameToId($Model, $assocName, $foreignKey) {
 		if (empty($Model->data[$Model->alias][$foreignKey])) {
 			// no value for this association foreignKey
+			#debug(compact('assocName', 'foreignKey'));
 			return false;
 		}
 		$fkname = $fkid = $Model->data[$Model->alias][$foreignKey];
 		$Model->{$assocName}->id = $fkid;
 		if ($Model->{$assocName}->exists($fkid)) {
 			// record is an id and exists
+			#debug(compact('assocName', 'foreignKey', 'fkid'));
 			return $fkid;
 		}
 		// not existing, lookup the id
@@ -103,6 +108,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 		//   if not, Search plugin not setup correctly
 		$conditions = $Model->{$assocName}->parseCriteria($args);
 		if (empty($conditions)) {
+			die('TypeaheadableBehavior::nameToId() conditions are empty, configure ' . $assocName . ' filterArgs for  ' . $foreignKey);
 			throw new OutOfBoundsException('TypeaheadableBehavior::nameToId() conditions are empty, configure ' . $assocName . ' filterArgs for  ' . $foreignKey);
 		}
 		$fkid = $Model->{$assocName}->field($Model->{$assocName}->primaryKey, $conditions);

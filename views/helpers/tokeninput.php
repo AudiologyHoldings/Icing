@@ -5,8 +5,9 @@
 Class TokeninputHelper extends AppHelper {
 
 	public $helpers = array(
-		'Output',
+		'Html',
 		'Form',
+		// optionally use the TwitterBootstrap helper for form elements
 		'TwitterBootstrap',
 	);
 
@@ -28,10 +29,24 @@ Class TokeninputHelper extends AppHelper {
 	public $primaryKey = 'id';
 
 	/**
+	 * Which form helper to use
+	 */
+	public $formHelper = 'TwitterBootstrap';
+
+	/**
 	 * Placeholder so we never double-load assets
-	 *
 	 */
 	public $assetsLoaded = false;
+
+	/**
+	 * path to assests files
+	 */
+	public $assetsPath = '/tokeninput/';
+
+	/**
+	 * assets loading method options
+	 */
+	public $assetsOptions = array('inline' => false);
 
 	/**
 	 * Load the important, required assets
@@ -43,8 +58,8 @@ Class TokeninputHelper extends AppHelper {
 			return '';
 		}
 		$this->assetsLoaded = true;
-		return $this->Output->css('/files/simucase/css/jquery.tokeninput.css') .
-			$this->Output->script('/files/simucase/js/libs/external/jquery.tokeninput.js');
+		return $this->Html->css($this->assetsPath . 'jquery.tokeninput.css') .
+			$this->Html->script($this->assetsPath . 'jquery.tokeninput.js', $this->assetsOptions);
 	}
 
 	/**
@@ -56,7 +71,7 @@ Class TokeninputHelper extends AppHelper {
 	 *   either in the $options as a key, or as a 3rd param
 	 *   and it should be a simple list of keys=>names
 	 *
-	 * It also populates JS onto the OutputHelper for each tokeninput
+	 * It also populates JS onto the HtmlHelper for each tokeninput
 	 *
 	 * NOTE: if an ID isn't passed in, we generate a random one
 	 *
@@ -75,7 +90,7 @@ Class TokeninputHelper extends AppHelper {
 			'data-provide' => 'tokeninput',
 			'id' => 'tokeninput' . String::uuid(),
 			// this is the url to the source for autocomplete
-			'source' => $this->Output->url(array('action' => 'tokeninput', 'as.json')),
+			'source' => $this->Html->url(array('action' => 'tokeninput', 'as.json')),
 			// pass in a simple array(array(id=>__, name=>__))
 			// or pass in a simple array(id=>__, name=>__) and we will transform
 			'prePopulate' => $prePopulate,
@@ -108,8 +123,8 @@ Class TokeninputHelper extends AppHelper {
 		$options = array_diff_key($options, $jsOptions + array('source' => 0));
 
 		return $this->assets() .
-			$this->TwitterBootstrap->input($fieldName, $options) .
-			$this->Output->scriptBlock($js);
+			$this->{$this->formHelper}->input($fieldName, $options) .
+			$this->Html->scriptBlock($js);
 	}
 
 	/**

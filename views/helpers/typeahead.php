@@ -5,16 +5,32 @@
 Class TypeaheadHelper extends AppHelper {
 
 	public $helpers = array(
-		'Output',
+		'Html',
 		'Form',
+		// optionally use the TwitterBootstrap helper for form elements
 		'TwitterBootstrap',
 	);
+
+	/**
+	 * Which form helper to use
+	 */
+	public $formHelper = 'TwitterBootstrap';
 
 	/**
 	 * Placeholder so we never double-load assets
 	 *
 	 */
 	public $assetsLoaded = false;
+
+	/**
+	 * path to assests files
+	 */
+	public $assetsPath = '/typeahead/';
+
+	/**
+	 * assets loading method options
+	 */
+	public $assetsOptions = array('inline' => false);
 
 	/**
 	 * Load the important, required assets
@@ -26,7 +42,8 @@ Class TypeaheadHelper extends AppHelper {
 			return '';
 		}
 		$this->assetsLoaded = true;
-		return $this->Output->script('/files/simucase/js/libs/external/bootstrap-typeahead.js');
+		return ''.
+			$this->Html->script($this->assetsPath . 'bootstrap-typeahead.js', $this->assetsOptions);
 	}
 
 	/**
@@ -48,7 +65,7 @@ Class TypeaheadHelper extends AppHelper {
 			'data-provide' => 'typeahead',
 			'id' => 'typeahead' . String::uuid(),
 			// this is the url to the source for autocomplete
-			'source' => $this->Output->url(array('action' => 'typeahead', 'as.json')),
+			'source' => $this->Html->url(array('action' => 'typeahead', 'as.json')),
 		);
 		if (is_string($options)) {
 			$options = array('source' => $options);
@@ -58,7 +75,7 @@ Class TypeaheadHelper extends AppHelper {
 		}
 		$options = array_merge($defaults, $options);
 		if (empty($options['source'])) {
-			throw new OutOfBoundsException("TokeninputHelper::input($fieldName) you must provide a source");
+			throw new OutOfBoundsException("TypeaheadHelper::input($fieldName) you must provide a source");
 		}
 		extract($options);
 
@@ -73,20 +90,20 @@ Class TypeaheadHelper extends AppHelper {
 
 		// simple and easy - data-attributes trigger functionality
 		return $this->assets() .
-			$this->TwitterBootstrap->input($fieldName, $options);
+			$this->{$this->formHelper}->input($fieldName, $options);
 
 		/*
 		// each input would get JS function to init
 		$js = '$("#'. $options['id'] . '").typeahead("' . $source  . '", ' . json_encode($jsOptions) . ');';
 		return $this->assets() .
-			$this->TwitterBootstrap->input($fieldName, $options) .
-			$this->Output->scriptBlock($js);
+			$this->{$this->formHtlper}->input($fieldName, $options) .
+			$this->Html->scriptBlock($js);
 		*/
 	}
 
 	/**
 	 * Determines what format you put in for existing data
-	 * and corrects it to the expected format for tokeninput
+	 * and corrects it to the expected format for typeahead
 	 *
 	 * Input can be a simple list find where ids are keys and names are values
 	 * (simplest)

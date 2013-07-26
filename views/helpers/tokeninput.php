@@ -124,7 +124,7 @@ Class TokeninputHelper extends AppHelper {
 
 		return $this->assets() .
 			$this->{$this->formHelper}->input($fieldName, $options) .
-			$this->Html->scriptBlock($js);
+			$this->Html->scriptBlock($js, array('inline' => false));
 	}
 
 	/**

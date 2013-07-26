@@ -60,16 +60,8 @@ class TypeaheadableBehavior extends ModelBehavior {
 		}
 		foreach ($Model->hasOne as $assocName => $assocConf) {
 			$fkid = $this->nameToId($Model, $assocName, $Model->{$assocName}->primaryKey);
-			debug(compact('fkid', 'assocName', 'assocConf'));
+			#debug(compact('fkid', 'assocName', 'assocConf'));
 		}
-		/*
-		foreach ($Model->hasMany as $assocName => $assocConf) {
-			debug($assocConf);
-		}
-		foreach ($Model->hasAndBelongsToMany as $assocName => $assocConf) {
-			debug($assocConf);
-		}
-		*/
 		// allow save to continue...
 		return true;
 	}
@@ -103,11 +95,17 @@ class TypeaheadableBehavior extends ModelBehavior {
 		// not existing, lookup the id
 		//   using the CakeDC Search plugin so that you can easily
 		//   customize this search on the model if you need to
-		$args = array( $foreignKey => $fkname );
-		$fkid = $Model->{$assocName}->field(
-			$Model->{$assocName}->primaryKey,
-			$Model->{$assocName}->parseCriteria($args)
+		$args = array(
+			$foreignKey => $fkname,
+			'term' => $fkname,
 		);
+		// verify that we end up with conditions
+		//   if not, Search plugin not setup correctly
+		$conditions = $Model->{$assocName}->parseCriteria($args);
+		if (empty($conditions)) {
+			throw new OutOfBoundsException('TypeaheadableBehavior::nameToId() conditions are empty, configure ' . $assocName . ' filterArgs for  ' . $foreignKey);
+		}
+		$fkid = $Model->{$assocName}->field($Model->{$assocName}->primaryKey, $conditions);
 		if (!empty($fkid)) {
 			// found the id, translate
 			$Model->data[$Model->alias][$foreignKey] = $fkid;

@@ -106,6 +106,10 @@ class TypeaheadableBehavior extends ModelBehavior {
 		);
 		// verify that we end up with conditions
 		//   if not, Search plugin not setup correctly
+		if (empty($Model->{$assocName}->filterArgs)) {
+			die('TypeaheadableBehavior::nameToId() on the Model: ' . $assocName . ' the filterArgs are missing, they are needed for searchable');
+			throw new OutOfBoundsException('TypeaheadableBehavior::nameToId() on the Model: ' . $assocName . ' the filterArgs are missing, they are needed for searchable');
+		}
 		$conditions = $Model->{$assocName}->parseCriteria($args);
 		if (empty($conditions)) {
 			die('TypeaheadableBehavior::nameToId() conditions are empty, configure ' . $assocName . ' filterArgs for  ' . $foreignKey);

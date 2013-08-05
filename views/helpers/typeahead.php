@@ -77,6 +77,12 @@ Class TypeaheadHelper extends AppHelper {
 		if (empty($options['source'])) {
 			throw new OutOfBoundsException("TypeaheadHelper::input($fieldName) you must provide a source");
 		}
+		// attempt to get the "name" value (instead of the "id")
+		//   would have to set from controller/model via idsToNames()
+		//   this is the tranlation to human readable
+		if (!isset($options['value'])) {
+			$options['value'] = $this->Form->value($fieldName . '_typeahead');
+		}
 		extract($options);
 
 		// options for the typeahead

@@ -54,18 +54,22 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 * @access public
 	 */
 	public function beforeSave($Model) {
-		extract($this->settings[$Model->alias]);
-		if (!$Model->id) {
-			// add (new record)
+		if (empty($Model->data)) {
+			return true;
 		}
+		$resetId = $Model->id;
+		extract($this->settings[$Model->alias]);
 		foreach ($Model->belongsTo as $assocName => $assocConf) {
-			$fkid = $this->nameToId($Model, $assocName, $assocConf['foreignKey']);
+			$assocName = $assocConf['className'];
+			$fkid = $this->nameToId($Model, 'belongsTo', $assocName, $assocConf['foreignKey']);
 		}
 		foreach ($Model->hasOne as $assocName => $assocConf) {
-			$fkid = $this->nameToId($Model, $assocName, $Model->{$assocName}->primaryKey);
+			$assocName = $assocConf['className'];
+			$fkid = $this->nameToId($Model, 'hasOne', $assocName, $assocConf['foreignKey']);
 			#debug(compact('fkid', 'assocName', 'assocConf'));
 		}
 		// allow save to continue...
+		$Model->id = $resetId;
 		return true;
 	}
 
@@ -79,18 +83,35 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 *     looks for a method call typeaheadNew(), if not found calls save()
 	 *
 	 * @param AppModel $Model Model instance
+	 * @param string $assocType (belongsTo or hasOne)
 	 * @param string $assocName (model name/alias)
 	 * @param string $foreignKey (field name to look for in data)
 	 * @return mixed $id or false
 	 *   if found, also sets the value onto the Model->data
 	 */
-	public function nameToId($Model, $assocName, $foreignKey) {
-		if (empty($Model->data[$Model->alias][$foreignKey])) {
-			// no value for this association foreignKey
-			#debug(compact('assocName', 'foreignKey'));
+	public function nameToId($Model, $assocType, $assocName, $foreignKey) {
+		if ($assocType != 'belongsTo' && $assocType != 'hasOne') {
+			#debug(compact('assocType', 'assocName'));
 			return false;
 		}
-		$fkname = $fkid = $Model->data[$Model->alias][$foreignKey];
+		if ($assocType == 'belongsTo') {
+			if (empty($Model->data[$Model->alias][$foreignKey])) {
+				// no value for the parent model
+				$data = $Model->data;
+				#debug(compact('assocType', 'assocName', 'foreignKey', 'data'));
+				return false;
+			}
+			$fkname = $fkid = $Model->data[$Model->alias][$foreignKey];
+		}
+		if ($assocType == 'hasOne') {
+			if (empty($Model->data[$assocName]['id'])) {
+				// no value for the parent model
+				$data = $Model->data;
+				#debug(compact('assocType', 'assocName', 'foreignKey', 'data'));
+				return false;
+			}
+			$fkname = $fkid = $Model->data[$assocName]['id'];
+		}
 		$Model->{$assocName}->id = $fkid;
 		if ($Model->{$assocName}->exists($fkid)) {
 			// record is an id and exists
@@ -116,26 +137,43 @@ class TypeaheadableBehavior extends ModelBehavior {
 			throw new OutOfBoundsException('TypeaheadableBehavior::nameToId() conditions are empty, configure ' . $assocName . ' filterArgs for  ' . $foreignKey);
 		}
 		$fkid = $Model->{$assocName}->field($Model->{$assocName}->primaryKey, $conditions);
+		if (empty($fkid)) {
+			// not found, add a new record (if we can)
+			$fkid = $this->nameToNewId($Model, $assocName, $fkname);
+		}
 		if (!empty($fkid)) {
 			// found the id, translate
-			$Model->data[$Model->alias][$foreignKey] = $fkid;
-			return $fkid;
+			if ($assocType == 'belongsTo') {
+				$Model->data[$Model->alias][$foreignKey] = $fkid;
+				return $fkid;
+			}
+			if ($assocType == 'hasOne') {
+				$Model->data[$assocType]['id'] = $fkid;
+				return $fkid;
+			}
 		}
-		// not found, add a new record (if we can)
+		// unable to save, unable to find... :(
+		return false;
+	}
+
+	/**
+	 * TypeaheadableBehavior can automatically create a new record from your
+	 * passed in data.
+	 *
+	 * @param AppModel $Model
+	 * @param string $assocName
+	 * @param string $fkname
+	 * @return mixed $fkid or false
+	 */
+	public function nameToNewId($Model, $assocName, $fkname) {
 		$save = array($assocName => array(
 			$Model->{$assocName}->displayField => $fkname,
 		));
 		$Model->{$assocName}->create(false);
 		$method = (method_exists($Model->{$assocName}, 'typeaheadNew') ? 'typeaheadNew' : 'save');
 		if ($Model->{$assocName}->{$method}($save)) {
-			$fkid = $Model->{$assocName}->id;
+			return $Model->{$assocName}->id;
 		}
-		if (!empty($fkid)) {
-			// found the id, translate
-			$Model->data[$Model->alias][$foreignKey] = $fkid;
-			return $fkid;
-		}
-		// unable to save, unable to find... :(
 		return false;
 	}
 
@@ -168,7 +206,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 				// not in "allowed" fields, don't translate
 				continue;
 			}
-			$record = $this->swapIdForNameIfFound($Model, $record, $assocName, $foreignKey);
+			$record = $this->injectNameField($Model, $record, $assocName, $foreignKey);
 		}
 		foreach ($Model->hasOne as $assocName => $assocConf) {
 			$foreignKey = $assocConf['foreignKey'];
@@ -176,7 +214,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 				// not in "allowed" fields, don't translate
 				continue;
 			}
-			$record = $this->swapIdForNameIfFound($Model, $record, $assocName, $foreignKey);
+			$record = $this->injectNameField($Model, $record, $assocName, $foreignKey);
 		}
 		return $record;
 	}
@@ -191,7 +229,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 * @param string $foreignKey (field name to look for in data)
 	 * @return mixed $id or false
 	 */
-	public function swapIdForNameIfFound($Model, $record, $assocName, $foreignKey) {
+	public function injectNameField($Model, $record, $assocName, $foreignKey) {
 		if (empty($foreignKey) || empty($record[$Model->alias][$foreignKey])) {
 			// unable to find the ID
 			return $record;
@@ -205,8 +243,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 			array($assocName . '.' . $Model->{$assocName}->primaryKey => $fkid)
 		);
 		if (!empty($fkname)) {
-			$record[$Model->alias][$foreignKey . '_typeahead'] = $fkid;
-			$record[$Model->alias][$foreignKey] = $fkname;
+			$record[$Model->alias][$foreignKey . '_typeahead'] = $fkname;
 		}
 		return $record;
 	}

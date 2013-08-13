@@ -11,6 +11,16 @@
  * look.
  *
  *
+ * TROUBLESHOOTING
+ * ----------------
+ *
+ * Are you getting the "wrong" id back for a name input?
+ *
+ * Check your Searchable "args" --> "conditions" methods and filter setup.
+ *
+ * The easiest solution is to make a filter for the association "foreignKey"
+ * field, and make that filter expect the "name" and treat it as a like or
+ * value.
  */
 class TypeaheadableBehavior extends ModelBehavior {
 
@@ -41,9 +51,17 @@ class TypeaheadableBehavior extends ModelBehavior {
 		$this->settings[$model->alias] = array_merge($this->_defaults, $config);
 	}
 
+	/**
+	 * The same logic of beforeSave() should be applied beforeValidate()
+	 * because the "name" may fail validation, where as the "id" wouldn't
+	 *
+	 * @param AppModel $Model Model instance
+	 * @return boolean true to continue, false to abort the save
+	 */
 	public function beforeValidate($Model) {
 		return $this->beforeSave($Model);
 	}
+
 	/**
 	 * Before save method. Called before all saves
 	 *
@@ -51,7 +69,6 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 *
 	 * @param AppModel $Model Model instance
 	 * @return boolean true to continue, false to abort the save
-	 * @access public
 	 */
 	public function beforeSave($Model) {
 		if (empty($Model->data)) {
@@ -66,7 +83,6 @@ class TypeaheadableBehavior extends ModelBehavior {
 		foreach ($Model->hasOne as $assocName => $assocConf) {
 			$assocName = $assocConf['className'];
 			$fkid = $this->nameToId($Model, 'hasOne', $assocName, $assocConf['foreignKey']);
-			#debug(compact('fkid', 'assocName', 'assocConf'));
 		}
 		// allow save to continue...
 		$Model->id = $resetId;

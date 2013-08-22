@@ -90,6 +90,21 @@ class TypeaheadableBehavior extends ModelBehavior {
 	}
 
 	/**
+	 * Returns the Associated Model based on $assocName
+	 *
+	 * @param AppModel $Model Model instance
+	 * @param string $assocName
+	 * @return AppModel $assocModel
+	 */
+	private function assocModel($Model, $assocName) {
+		$alias = $Model->alias;
+		if ($assocName == $alias) {
+			return $Model;
+		}
+		return $Model->{$assocName};
+	}
+
+	/**
 	 * Transalate a single node, from one model to another...
 	 *
 	 * Looks for the foreignKey value
@@ -128,8 +143,9 @@ class TypeaheadableBehavior extends ModelBehavior {
 			}
 			$fkname = $fkid = $Model->data[$assocName]['id'];
 		}
-		$Model->{$assocName}->id = $fkid;
-		if ($Model->{$assocName}->exists($fkid)) {
+		$assocModel = $this->assocModel($Model, $assocName);
+		$assocModel->id = $fkid;
+		if ($assocModel->exists($fkid)) {
 			// record is an id and exists
 			#debug(compact('assocName', 'foreignKey', 'fkid'));
 			return $fkid;
@@ -143,16 +159,16 @@ class TypeaheadableBehavior extends ModelBehavior {
 		);
 		// verify that we end up with conditions
 		//   if not, Search plugin not setup correctly
-		if (empty($Model->{$assocName}->filterArgs)) {
+		if (empty($assocModel->filterArgs)) {
 			die('TypeaheadableBehavior::nameToId() on the Model: ' . $assocName . ' the filterArgs are missing, they are needed for searchable');
 			throw new OutOfBoundsException('TypeaheadableBehavior::nameToId() on the Model: ' . $assocName . ' the filterArgs are missing, they are needed for searchable');
 		}
-		$conditions = $Model->{$assocName}->parseCriteria($args);
+		$conditions = $assocModel->parseCriteria($args);
 		if (empty($conditions)) {
 			die('TypeaheadableBehavior::nameToId() conditions are empty, configure ' . $assocName . ' filterArgs for  ' . $foreignKey);
 			throw new OutOfBoundsException('TypeaheadableBehavior::nameToId() conditions are empty, configure ' . $assocName . ' filterArgs for  ' . $foreignKey);
 		}
-		$fkid = $Model->{$assocName}->field($Model->{$assocName}->primaryKey, $conditions);
+		$fkid = $assocModel->field($assocModel->primaryKey, $conditions);
 		if (empty($fkid)) {
 			// not found, add a new record (if we can)
 			$fkid = $this->nameToNewId($Model, $assocName, $fkname);
@@ -182,13 +198,14 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 * @return mixed $fkid or false
 	 */
 	public function nameToNewId($Model, $assocName, $fkname) {
+		$assocModel = $this->assocModel($Model, $assocName);
 		$save = array($assocName => array(
-			$Model->{$assocName}->displayField => $fkname,
+			$assocModel->displayField => $fkname,
 		));
-		$Model->{$assocName}->create(false);
-		$method = (method_exists($Model->{$assocName}, 'typeaheadNew') ? 'typeaheadNew' : 'save');
-		if ($Model->{$assocName}->{$method}($save)) {
-			return $Model->{$assocName}->id;
+		$assocModel->create(false);
+		$method = (method_exists($assocModel, 'typeaheadNew') ? 'typeaheadNew' : 'save');
+		if ($assocModel->{$method}($save)) {
+			return $assocModel->id;
 		}
 		return false;
 	}
@@ -250,13 +267,14 @@ class TypeaheadableBehavior extends ModelBehavior {
 			// unable to find the ID
 			return $record;
 		}
+		$assocModel = $this->assocModel($Model, $assocName);
 		$fkid = $record[$Model->alias][$foreignKey];
-		if (!empty($record[$assocName][($Model->{$assocName}->displayField)])) {
-			$fkname = $record[$assocName][($Model->{$assocName}->displayField)];
+		if (!empty($record[$assocName][($assocModel->displayField)])) {
+			$fkname = $record[$assocName][($assocModel->displayField)];
 		}
-		$fkname = $Model->{$assocName}->field(
-			$Model->{$assocName}->displayField,
-			array($assocName . '.' . $Model->{$assocName}->primaryKey => $fkid)
+		$fkname = $assocModel->field(
+			$assocModel->displayField,
+			array($assocName . '.' . $assocModel->primaryKey => $fkid)
 		);
 		if (!empty($fkname)) {
 			$record[$Model->alias][$foreignKey . '_typeahead'] = $fkname;

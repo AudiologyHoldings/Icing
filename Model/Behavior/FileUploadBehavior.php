@@ -33,7 +33,7 @@ class FileUploadBehavior extends ModelBehavior {
     */
   var $Uploader = array();
   
-  function setFileUploadOption(&$Model, $key, $value) {
+  function setFileUploadOption(Model $Model, $key, $value) {
     $this->options[$Model->alias][$key] = $value;
     $this->Uploader[$Model->alias]->setOption($key, $value);
   }
@@ -41,7 +41,7 @@ class FileUploadBehavior extends ModelBehavior {
   /**
     * Setup the behavior
     */
-  function setUp(&$Model, $options = array()){
+  function setUp(Model $Model, $options = array()){
   	if(!Configure::load('file_upload')){
   		throw Exception('Config' . DS . 'file_upload.php not found. Please copy Icing' . DS . 'Config' . DS . 'file_upload.php.default for example setings');
   	}
@@ -61,7 +61,7 @@ class FileUploadBehavior extends ModelBehavior {
     * beforeSave if a file is found, upload it, and then save the filename according to the settings
     *
     */
-  function beforeSave(&$Model){
+  function beforeSave(Model $Model, $options = array()){
     if(isset($Model->data[$Model->alias][$this->options[$Model->alias]['fileVar']])){
       $file = $Model->data[$Model->alias][$this->options[$Model->alias]['fileVar']];
       $this->Uploader[$Model->alias]->file = $file;
@@ -88,7 +88,7 @@ class FileUploadBehavior extends ModelBehavior {
     * Updates validation errors if there was an error uploading the file.
     * presents the user the errors.
     */
-  function beforeValidate(&$Model){
+  function beforeValidate(Model $Model){
     if(isset($Model->data[$Model->alias][$this->options[$Model->alias]['fileVar']])){
       $file = $Model->data[$Model->alias][$this->options[$Model->alias]['fileVar']];
       $this->Uploader[$Model->alias]->file = $file;
@@ -115,7 +115,7 @@ class FileUploadBehavior extends ModelBehavior {
   /**
     * Automatically remove the uploaded file.
     */
-  function beforeDelete(&$Model, $cascade){
+  function beforeDelete(Model $Model, $cascade = true){
     $Model->recursive = -1;
     $data = $Model->read();
     

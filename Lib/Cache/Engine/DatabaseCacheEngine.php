@@ -91,7 +91,7 @@ class DatabaseCacheEngine extends CacheEngine {
 	* @param int offset
 	* @return boolean false
 	*/
-	public function gc(){
+	public function gc($expires = null){
 		$this->loadCacheModel();
 		$this->CacheModel->clearExpired();
 	}

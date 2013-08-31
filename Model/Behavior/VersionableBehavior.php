@@ -125,7 +125,7 @@ class VersionableBehavior extends ModelBehavior {
 	* @param Model model
 	* @param boolean cascade
 	*/
-	public function beforeDelete(Model $Model, $cascade){
+	public function beforeDelete(Model $Model, $cascade = true){
 		$this->saveVersion($Model, $delete = true);
 		return $Model->beforeDelete($cascade);
 	}

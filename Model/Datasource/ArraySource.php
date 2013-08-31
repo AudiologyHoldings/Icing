@@ -182,12 +182,12 @@ class ArraySource extends DataSource {
 		if ($queryData['recursive'] > -1) {
 			foreach ($_associations as $type) {
 				foreach ($model->{$type} as $assoc => $assocData) {
-					$linkModel =& $model->{$assoc};
+					$linkModel = $model->{$assoc};
 
 					if ($model->useDbConfig == $linkModel->useDbConfig) {
-						$db =& $this;
+						$db = $this;
 					} else {
-						$db =& ConnectionManager::getDataSource($linkModel->useDbConfig);
+						$db = ConnectionManager::getDataSource($linkModel->useDbConfig);
 					}
 
 					if (isset($db)) {

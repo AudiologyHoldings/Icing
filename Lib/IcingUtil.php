@@ -1,4 +1,5 @@
 <?php
+App::uses('Xml', 'Utility');
 class IcingUtil extends Object {
 	
 	/**
@@ -443,5 +444,18 @@ class IcingUtil extends Object {
 		}
 		return $cc_unencrypted;
 	}
+	
+	public function xmlElem($name, $attributes = array(), $content = null){
+		$attributes['@'] = $content;
+		$data = array(
+			$name => $attributes
+		);
+		$retval = Xml::fromArray($data, array('format' => 'attribute', 'encoding' => null))->asXML();
+		$retval = str_replace(array("<?xml version=\"1.0\"?>","\n"), "", $retval);
+		return html_entity_decode($retval);
+	}
+	
+	public function xmlHeader(){
+		return '<?xml version="1.0" encoding="UTF-8" ?>';
+	}
 }
-?>

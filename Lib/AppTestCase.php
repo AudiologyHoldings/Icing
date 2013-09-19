@@ -257,22 +257,6 @@ class AppTestCase extends CakeTestCase {
 	}
 
 	/**
-	 * Overrides parent method to allow selecting tests to run in the current test case
-	 * It is useful when working on one particular test
-	 *
-	 * @return array List of tests to run
-	 */
-	public function getTests() {
-		if (!empty($this->_testsToRun)) {
-			debug('Only the following tests will be executed: ' . join(', ', (array) $this->_testsToRun), false, false);
-			$result = array_merge(array('start', 'startCase'), (array) $this->_testsToRun, array('endCase', 'end'));
-			return $result;
-		} else {
-			return parent::getTests();
-		}
-	}
-
-	/**
 	 * Assertion Shortcut
 	 * (depriciated?)
 	 */

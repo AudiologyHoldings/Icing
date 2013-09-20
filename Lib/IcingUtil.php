@@ -455,7 +455,7 @@ class IcingUtil extends Object {
 		return $cc_unencrypted;
 	}
 	
-	public function xmlElem($name, $attributes = array(), $content = null){
+	public static function xmlElem($name, $attributes = array(), $content = null){
 		$attributes['@'] = $content;
 		$data = array(
 			$name => $attributes
@@ -465,7 +465,7 @@ class IcingUtil extends Object {
 		return html_entity_decode($retval);
 	}
 	
-	public function xmlHeader(){
+	public static function xmlHeader(){
 		return '<?xml version="1.0" encoding="UTF-8" ?>';
 	}
 }

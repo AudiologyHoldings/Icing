@@ -270,8 +270,8 @@ class Re {
 		}
 		$path = $paths;
 		unset($paths);
-		if (array_key_exists($path, $data) && Re::isValid($data['path'])) {
-			return $data['path'];
+		if (array_key_exists($path, $data) && Re::isValid($data[$path])) {
+			return $data[$path];
 		}
 		$retval = Set::extract($data, $path);
 		if (!empty($retval)) {

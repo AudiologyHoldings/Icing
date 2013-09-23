@@ -228,7 +228,7 @@ class Re {
 		$path = $paths;
 		unset($paths);
 		if (array_key_exists($path, $data)) {
-			return $data['path'];
+			return $data[$path];
 		}
 		$retval = Set::extract($data, $path);
 		if (!empty($retval)) {

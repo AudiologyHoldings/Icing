@@ -2,12 +2,33 @@
 /**
  * Library of helper functions
  *
+ * -----------------------
  *
- * @link		  https://github.com/zeroasterisk/as-library-of-PHP-helper-functions
- * @license	   MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * formatters:
+ *
+ * Re::asArray()
+ * Re::asString()
+ * Re::arrayCSV()
+ * Re::stringCSV()
+ *
+ * plucks:
+ *   get a single value from a possible set of paths, similar to
+ *   Set::extract, except that you can pass in many paths and you get 1 result
+ *   (not an array of all matching results)
+ *
+ * Re::pluck()
+ * Re::pluckValid()
+ *
+ * misc:
+ *
+ * Re::firstValid()
+ * Re::isValid()
+ *
+ * -----------------------
+ *
+ * @link       https://github.com/AudiologyHoldings/Icing
+ * @license    MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-
-
 class Re {
 
 	/**
@@ -210,6 +231,12 @@ class Re {
 	 * @return mixed
 	 */
 	public static function pluck($data, $paths, $default=null) {
+		if (empty($data)) {
+			return $default;
+		}
+		if (!is_array($data)) {
+			return $data;
+		}
 		if (is_array($paths)) {
 			foreach ($paths as $path) {
 				$retval = Re::pluck($data, $path, '[[REno-defaultRE]]');
@@ -218,12 +245,6 @@ class Re {
 				}
 			}
 			return $default;
-		}
-		if (empty($data)) {
-			return $default;
-		}
-		if (!is_array($data)) {
-			return $data;
 		}
 		$path = $paths;
 		unset($paths);
@@ -259,6 +280,12 @@ class Re {
 	 * @return mixed
 	 */
 	public static function pluckValid($data, $paths, $default=null) {
+		if (empty($data)) {
+			return $default;
+		}
+		if (!is_array($data)) {
+			return $data;
+		}
 		if (is_array($paths)) {
 			foreach ($paths as $path) {
 				$retval = Re::pluck($data, $path, '[[REno-defaultRE]]');

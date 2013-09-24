@@ -2,10 +2,10 @@
 App::uses('Base62', 'Icing.Lib');
 
 /**
- * As Library Test Case
+ * Base62 Library Test Case
  *
  */
-class AsTest extends CakeTestCase {
+class Base62Test extends CakeTestCase {
 	public $fixtures = array();
 
 	/**

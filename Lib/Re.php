@@ -212,7 +212,7 @@ class Re {
 	 */
 	public static function reValid($input, $default='', $isValidSettings=array()) {
 		if (Re::isValid($input, $isValidSettings)) {
-			return $data;
+			return $input;
 		} else {
 			return $default;
 		}

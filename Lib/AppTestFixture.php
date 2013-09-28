@@ -106,7 +106,8 @@ class AppTestFixture extends CakeTestFixture {
 					if (empty($data['type']) || $field == 'indexes') {
 						continue; // not a valid field (index/tableParameters)
 					} elseif ($this->isValidDefault($data)) {
-						$new[$field] = $data['default']; //if we have default defined, assign it.
+						// if we have default defined, assign it.
+						$new[$field] = $data['default'];
 					} elseif ($data['type'] == 'boolean') {
 						$new[$field] = 0;
 					} elseif ($data['type'] == 'number' || $data['type'] == 'float' || $data['type'] == 'integer' || $data['type'] == 'biginteger') {
@@ -117,7 +118,7 @@ class AppTestFixture extends CakeTestFixture {
 						$new[$field] = '';
 					}
 				}
-				// does this field support null?
+				// doublecheck does this field support null?
 				if ($new[$field] === null) {
 					if (empty($data['null'])) {
 						$new[$field] = '';
@@ -165,21 +166,20 @@ class AppTestFixture extends CakeTestFixture {
 	}
 
 	/**
-	* Validate the default field in the column data is a valid default
-	* @param array of data column data
-	* @return boolean if valid.
-	*/
+	 * Validate the default field in the column data is a valid default
+	 *
+	 * @param array of data column data
+	 * @return boolean if valid.
+	 */
 	private function isValidDefault($data){
-		$retval = false;
-		if (array_key_exists('default', $data)) {
-			if ($data['default'] === null) {
-				if (array_key_exists('null', $data) && $data['null'] === false) {
-					$retval = false;
-				}
-			}
-			$retval = true;
+		if (!array_key_exists('default', $data)) {
+			return false;
 		}
-		return $retval;
+		if ($data['default'] === null) {
+			// we want to "allow" a null default only if the field supports null values
+			return (!empty($data['null']));
+		}
+		return true;
 	}
 }
 

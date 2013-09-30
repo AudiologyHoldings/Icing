@@ -117,6 +117,12 @@ class AppTestFixture extends CakeTestFixture {
 						$new[$field] = '';
 					}
 				}
+				// does this field support null?
+				if ($new[$field] === null) {
+					if (empty($data['null'])) {
+						$new[$field] = '';
+					}
+				}
 			}
 			$this->records[$key] = $new;
 		}

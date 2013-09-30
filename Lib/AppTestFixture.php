@@ -179,7 +179,7 @@ class AppTestFixture extends CakeTestFixture {
 			// we want to "allow" a null default only if the field supports null values
 			return (!empty($data['null']));
 		}
-		return $retval;
+		return true;
 	}
 }
 

@@ -184,4 +184,16 @@ class AsTest extends CakeTestCase {
 		$this->assertFalse(Re::pluckIsValid($input, array('/User/bad-path', '/User/empty')));
 		$this->assertFalse(Re::pluckIsValid($input, array('/User/bad-path', '/User/alt-bad-path')));
 	}
+
+	public function testBefore() {
+		$this->assertEquals('valid', Re::before('valid,invalid'));
+		$this->assertEquals('valid', Re::before('valid,inv,alid'));
+		$this->assertEquals('valid', Re::before('valid[spliter]invalid', '[spliter]'));
+	}
+
+	public function testAfter() {
+		$this->assertEquals('valid', Re::after('invalid,valid'));
+		$this->assertEquals('valid', Re::after('inva,lid,valid'));
+		$this->assertEquals('valid', Re::after('invalid[spliter]valid', '[spliter]'));
+	}
 }

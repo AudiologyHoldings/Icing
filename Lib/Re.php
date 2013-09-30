@@ -329,4 +329,28 @@ class Re {
 		return Re::isValid($retval);
 	}
 
+	/**
+	 * Split $string on $splitter and give me everything before
+	 *
+	 * @param string $string
+	 * @param string $splitter
+	 * @return string $before
+	 */
+	public static function before($string, $splitter = ',') {
+		$parts = explode($splitter, $string);
+		return array_shift($parts);
+	}
+
+	/**
+	 * Split $string on $splitter and give me everything after
+	 *
+	 * @param string $string
+	 * @param string $splitter
+	 * @return string $before
+	 */
+	public static function after($string, $splitter = ',') {
+		$parts = explode($splitter, $string);
+		return array_pop($parts);
+	}
+
 }

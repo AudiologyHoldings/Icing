@@ -86,7 +86,7 @@ class IcingCartComponent extends Component {
 	/**
 	* Load the model and contain variables.
 	*/
-	public function initialize(&$Controller){
+	public function initialize(Controller $Controller){
 		$this->Controller = $Controller;
 		$this->cart = $this->get();
 	}

@@ -1,0 +1,70 @@
+{
+	"name": "alliedhealthmedia/icing",
+	"description": "CakePHP Icing Plugin - Portable Package of Handy Utilities for CakePHP",
+	"type": "cakephp-plugin",
+	"keywords": ["cakephp", "icing", "file upload", "csv", "summable", "google calendar", "twitter", "do", "shell", "versionable", "database cache", "cache", "apptest", "appfixture", "ckeditor"],
+	"homepage": "https://github.com/AudiologyHoldings/Icing",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Nick Baker",
+			"homepage": "http://www.webtechnick.com",
+			"role": "Author"
+		},
+		{
+			"name": "Alan Blount",
+			"homepage": "http://www.alliedhealthmedia.com",
+			"role": "Author"
+		},
+		{
+			"name": "Matt Reishus",
+			"homepage": "http://www.alliedhealthmedia.com",
+			"role": "Author"
+		},
+		{
+			"name": "Mark Vince",
+			"homepage": "http://www.alliedhealthmedia.com",
+			"role": "Author"
+		},
+		{
+			"name": "Chris Johnson",
+			"homepage": "http://www.alliedhealthmedia.com",
+			"role": "Author"
+		},
+		{
+			"name": "Travis Reddell",
+			"homepage": "http://www.alliedhealthmedia.com",
+			"role": "Author"
+		},
+		{
+			"name": "Becky Lemons",
+			"homepage": "http://www.alliedhealthmedia.com",
+			"role": "Author"
+		},
+		{
+			"name": "Jeff Kolesnikowicz",
+			"homepage": "http://www.alliedhealthmedia.com",
+			"role": "Author"
+		},
+		{
+			"name": "Roger Flynn",
+			"homepage": "http://www.alliedhealthmedia.com",
+			"role": "Author"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/AudiologyHoldings/Icing/issues",
+		"source": "https://github.com/AudiologyHoldings/Icing"
+	},
+	"require": {
+		"php": ">=5.3.0",
+		"composer/installers": "*"
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "2.x-dev",
+			"cakephp1.3": "1.3-dev"
+		},
+		"installer-name": "Icing"
+	}
+}

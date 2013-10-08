@@ -196,4 +196,62 @@ class AsTest extends CakeTestCase {
 		$this->assertEquals('valid', Re::after('inva,lid,valid'));
 		$this->assertEquals('valid', Re::after('invalid[spliter]valid', '[spliter]'));
 	}
+
+	public function testMergeIfEmpty() {
+		$data = array(
+			'id' => 1,
+			'name' => 'first Name',
+			'empty' => '',
+			'null' => null,
+			'true' => true,
+			'false' => false,
+			'zero' => 0,
+		);
+		$defaults = array(
+			'new' => 'sss',
+			'id' => 'ttt',
+			'empty' => 'uuu',
+			'null' => 'vvv',
+			'name' => 'wwww',
+			'true' => 'xxx',
+			'false' => 'yyy',
+			'zero' => 'zzz',
+		);
+		$expect = array(
+			'new' => 'sss',
+			'id' => 1,
+			'name' => 'first Name',
+			'empty' => 'uuu',
+			'null' => 'vvv',
+			'true' => true,
+			'false' => 'yyy',
+			'zero' => 0,
+		);
+		$this->assertEquals($expect, Re::mergeIfEmpty($defaults, $data));
+		// try with nested arrays, default un-nested == simple merge, no overwrites
+		$data = array('User' => $data);
+		$data['Alt'] = array('id' => 5, 'zero' => 0);
+		$data['User']['Nest'] = array('id' => 5, 'zero' => 0);
+		$expect = $defaults;
+		$expect['Alt'] = $data['Alt'];
+		$expect['User'] = $data['User'];
+		$this->assertEquals($expect, Re::mergeIfEmpty($defaults, $data));
+		// try with nested defaults/data
+		$defaults = array('User' => $defaults);
+		$expect = array(
+			'User' => array(
+				'new' => 'sss',
+				'id' => 1,
+				'name' => 'first Name',
+				'empty' => 'uuu',
+				'null' => 'vvv',
+				'true' => true,
+				'false' => 'yyy',
+				'zero' => 0,
+				'Nest' => $data['User']['Nest'],
+			),
+			'Alt' => $data['Alt'],
+		);
+		$this->assertEquals($expect, Re::mergeIfEmpty($defaults, $data));
+	}
 }

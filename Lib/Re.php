@@ -353,4 +353,20 @@ class Re {
 		return array_pop($parts);
 	}
 
+	/**
+	 * Merge 2 arrays, but only merge in the $defaults which were "empty" in $data
+	 *
+	 * Set::filter() - $data
+	 * Set::merge() - $defaultsAndData + $filteredData
+	 *
+	 * @param array $defaults
+	 * @param array $data
+	 * @return array $data
+	 */
+	public static function mergeIfEmpty($defaults, $data) {
+		$defaultsAndData = Set::merge($data, $defaults);
+		$filteredData = Set::filter($data);
+		return Set::merge($defaultsAndData, $filteredData);
+	}
+
 }

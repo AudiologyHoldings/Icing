@@ -27,8 +27,20 @@
  *
  * OR: you can create a Configure::write('fixtures');
  *
- * @package templates
- * @subpackage templates.libs
+ *
+ * Extra Assertions
+ *
+ * $this->assertArrayCompare($expect, $result);
+ *   This is really useful because it will only consider keys which exist in $expect
+ *   So if you don't know what the 'created' or 'modified' would be and you don't care
+ *   you can just pass in an $expect without those fields, and they aren't
+ *   considered.  (All fields passed into $expect are considered)
+ *
+ * $this->assertInArray($value, $result);
+ * $this->assertKeyExists($key, $result);
+ * $this->assertIsEmpty($result);
+ *
+ * @package Icing
  */
 
 // auto load the AppTestFixture class, just to be neighborly
@@ -302,6 +314,8 @@ class AppTestCase extends CakeTestCase {
 	 * @param array $result
 	 */
 	public function assertArrayCompare($expect, $result, $message = 'sorry, the arrays did not match') {
+		$expect = Set::flatten($expect);
+		$result = Set::flatten($result);
 		$compare = array_intersect_key($result, $expect);
 		asort($expect);
 		asort($compare);

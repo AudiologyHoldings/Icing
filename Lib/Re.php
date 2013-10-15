@@ -46,6 +46,13 @@ class Re {
 		'disallow' => array(),
 	);
 
+	/** 
+	 * The default config.  The test suite will change $config to $defaultConfig before running tests
+	 */
+	static $defaultConfig = array(
+		'disallow' => array(),
+	);
+
 	/**
      * Merge an array of config variables into Re::$config
 	 * Example: Re::addToConfig(array('disallow' => array(0, '0')))

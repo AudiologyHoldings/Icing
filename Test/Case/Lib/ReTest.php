@@ -7,6 +7,7 @@ App::uses('Re', 'Icing.Lib');
  */
 class AsTest extends CakeTestCase {
 	public $fixtures = array();
+	public $previousConfig = null;
 
 	/**
 	 * setUp method
@@ -14,6 +15,8 @@ class AsTest extends CakeTestCase {
 	 * @return void
 	 */
 	public function setUp() {
+		$this->previousConfig = Re::$config;
+		Re::$config = Re::$defaultConfig;
 		parent::setUp();
 		//$this->User = ClassRegistry::init('User');
 	}
@@ -25,6 +28,7 @@ class AsTest extends CakeTestCase {
 	 */
 	public function tearDown() {
 		unset($this->User);
+		Re::$config = $this->previousConfig;
 		parent::tearDown();
 	}
 

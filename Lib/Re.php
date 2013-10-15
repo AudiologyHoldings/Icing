@@ -38,6 +38,29 @@ class Re {
 	static $empties = array(null, '', ' ', '	', "\r\n", "\n", "\t", "\r", "\s");
 
 	/**
+	 * Array of config settings
+	 * Supported:  'disallow': Array of values to be disallowed by isValid() and pluckIsValid()
+	 * These are always disallowed, even if this is empty: '0000-00-00', '0000-00-00 00:00:00', '', null, false
+	 */
+	static $config = array(
+		'disallow' => array(),
+	);
+
+	/**
+     * Merge an array of config variables into Re::$config
+	 * Example: Re::addToConfig(array('disallow' => array(0, '0')))
+	 * @param mixed $config
+	 * @return array $config
+	 **/
+	public static function addToConfig($config = null) {
+		if (empty($config)) {
+			return;
+		}
+		Re::$config = array_merge(Re::$config, $config);
+		return Re::$config;
+	}
+
+	/**
 	 * Returns an array, derived from whatever the input was.  Optionally cleans empties from the array as well.
 	 * @param mixed $input
 	 * @param bool $cleanEmpties
@@ -169,7 +192,8 @@ class Re {
 			$data = array_shift($data);
 		}
 		$disallowDefaults = array('0000-00-00', '0000-00-00 00:00:00', '', null, false);
-		$disallow = array_merge($disallowDefaults, Re::arrayCSV($disallow));
+		$disallow = array_merge($disallowDefaults, Re::arrayCSV($disallow), Re::$config['disallow']);
+
 		if (is_array($data)) {
 			if (Set::check($data, $disallow)) {
 				return false;

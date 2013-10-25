@@ -1,33 +1,37 @@
 <?php
 /**
   * Attach to any model to creating versions of current state on save for later restoration
-  * Uses the AuthComponent to log the user doing the save by default.
+  *
+  * To determine the User making the save:
+  *   uses the $Model->getUserId() if the method exists (could implement in AppModel)
+  *   uses the AuthComponent::user() if the class exists (App::uses('AuthComponent', 'Controller/Component'))
+  *   else, user_id = 0
   *
   * Setup:
   *   You have to install the icing_versions table into your database.  You can do so by running:
-  *   
+  *
   * cake schema create -p Icing
-  *   
-  * 
+  *
+  *
   * Example Usage:
-  * @example 
+  * @example
   * public $actsAs = array('Icing.Versionable');
   *
-  * @example 
+  * @example
   	public $actsAs = array('Icing.Versionable' => array(
   		'contain'         => array('Hour'), //contains for relative model to be saved.
   		'versions'        => '5',           //how many version to save at any given time (false by default unlimited)
   		'minor_timeframe' => '10',          //Mark as minor_version if saved within 10 seconds of last version.  Easily cleanup minor_versions
   		'bind'            => true,          //attach Versionable as HasMany relationship for you onFind and if contained
   	));
-  	
+
   	Restore from Previous Version
   	@example
   	$this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a'); //restores version id 50537471-ba08-44ae-a606-24e5e017215a
   	$this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a', false); //restores version id 50537471-ba08-44ae-a606-24e5e017215a and won't create a new version before restoring.
   	$this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
   	$this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
-  	
+
   	Diffs from a version
   	@example
   	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
@@ -36,7 +40,7 @@
 		Saving without making a version
 		@example
 		$this->Model->save($data, array('create_version' => false));
-		
+
   * @version: since 1.0
   * @author: Nick Baker
   * @link: http://www.webtechnick.com
@@ -63,7 +67,7 @@ class VersionableBehavior extends ModelBehavior {
 		$this->settings[$Model->alias] = $settings;
 		$this->IcingVersion = ClassRegistry::init('Icing.IcingVersion');
 	}
-	
+
 	/**
 	* On save will version the current state of the model with containable settings.
 	* @param Model model
@@ -74,7 +78,7 @@ class VersionableBehavior extends ModelBehavior {
 		}
 		return $Model->beforeSave();
 	}
-	
+
 	/**
 	* Add the association on find if they turn on the association in settings
 	* Only adds the bind if contained in the query
@@ -102,7 +106,7 @@ class VersionableBehavior extends ModelBehavior {
 		}
 		return $Model->beforeFind($query);
 	}
-	
+
 	/**
 	* Bind the icing model on demand, this is useful right before a call in which you want to contain
 	* but don't have the association.
@@ -119,7 +123,7 @@ class VersionableBehavior extends ModelBehavior {
 			)
 		));
 	}
-	
+
 	/**
 	* Version the delete, mark as deleted in Versionable
 	* @param Model model
@@ -129,7 +133,7 @@ class VersionableBehavior extends ModelBehavior {
 		$this->saveVersion($Model, $delete = true);
 		return $Model->beforeDelete($cascade);
 	}
-	
+
 	/**
 	* Restore data from a version_id
 	* @param int version id
@@ -153,7 +157,7 @@ class VersionableBehavior extends ModelBehavior {
 		} elseif($model_id) {
 			$restore = $this->IcingVersion->findVersionBack($Model->alias, $version_id, $model_id);
 		}
-		
+
 		if(!empty($restore)){
 			$model_data = json_decode($restore['IcingVersion']['json'], true);
 			if($Model->alias == $restore['IcingVersion']['model']){
@@ -166,17 +170,17 @@ class VersionableBehavior extends ModelBehavior {
 		}
 		return false;
 	}
-	
+
 	/**
 	* Return the diff of two versions of a paticular version
 	* @param Model model
 	* @param uuid version to diff against
-	* @param mixed 
+	* @param mixed
 	*/
 	public function diffVersion(Model $Model, $one_version_id, $two_version_id = null){
 		return $this->IcingVersion->diff($Model->alias, $one_version_id, $two_version_id, $this->settings[$Model->alias]);
 	}
-	
+
 	/**
 	* Get the version data from the Model based on settings and deleting
 	* this is used in beforeDelete and beforeSave
@@ -198,7 +202,7 @@ class VersionableBehavior extends ModelBehavior {
 				'contain' => $this->settings[$Model->alias]['contain']
 			));
 			$version_data = array(
-				'user_id' => AuthComponent::user('id'),
+				'user_id' => 0,
 				'model_id' => $model_id,
 				'model' => $Model->alias,
 				'json' => json_encode($current_data),
@@ -207,12 +211,17 @@ class VersionableBehavior extends ModelBehavior {
 				'ip' => IcingUtil::getIP(),
 				'is_minor_version' => false,
 			);
+			if (method_exists($Model, 'getUserId')) {
+				$version_data['user_id'] = $Model->getUserId();
+			} elseif (class_exists('AuthComponent') && class_exists('CakeSession') && CakeSession::started()) {
+				$version_data['user_id'] = AuthComponent::user('id');
+			}
 			$Model->data = $data;
 			return $this->IcingVersion->saveVersion($version_data, $this->settings[$Model->alias]);
 		}
 		return false;
 	}
-	
+
 	/**
 	* Adds error text to errors array
 	* @param Model model

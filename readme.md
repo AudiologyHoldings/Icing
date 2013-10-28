@@ -9,15 +9,16 @@ Portable Package of Utilities for CakePHP
 * GoogleCalendarHelper
 * TwitterHelper
 
-# Models
-
-* Throttle
-
 # Behaviors
 
 * FileUploadBehavior
 * VersionableBehavior
 * SummableBehavior
+* ThrottleableBehavior
+
+# Models
+
+* Throttle
 
 # Datasources
 
@@ -218,10 +219,29 @@ Allows for an array dataset instead of sql database but can be assosiated with o
 	$this->ConsumerGuide->field('path', array('ConsumerGuide.type' => 'loved_one'));
 	$this->ConsumerGuide->findByType('loved_one');
 
+## ThrottleableBehavior
+
+This is a convenience shortcut to functionality on the Throttle model.
+Basically it's a very clean and simple way to Throttle anything.
+
+	// setup in the model Behaviors all the time
+	public $actsAs = array('Icing.Throttleable');
+
+	// or load/attach the Behavior
+	$this->MyModel->Behaviors->load('Icing.Throttleable');
+
+	// the default `throttle()` method prefixes the $key with the Model->alias
+	if (!$this->MyModel->throttle('someKey', 2, 3600)) {
+		throw new OutOfBoundsException('This method  on MyModel has been attempted more than 2 times in 1 hour... wait.');
+	}
+	// the `_throttle()` method does not modify $key at all, so it's the same regardless of how you access it
+	if (!$this->MyModel->_throttle('key-could-be-anywhere', 2, 3600)) {
+		throw new OutOfBoundsException('This key has been attempted (from somewhere) more than 2 times in 1 hour... wait.');
+	}
+
 # Models
 
 ## Throttle
-
 
 Simple throttling table/toolset
 
@@ -229,22 +249,29 @@ Common Usage:
 
 	App::uses('Throttle', 'Icing.Model');
 	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey', 2, 3600)) {
-		throw new OutOfBoundsException('This method has been attempted this more than 2 times in 1 hour... wait.');
+		throw new OutOfBoundsException('This method has been attempted more than 2 times in 1 hour... wait.');
 	}
 	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey'.AuthComponent::user('id'), 1, 60)) {
-		throw new OutOfBoundsException('A Logged In User Account has attempted this more than 1 time in 60 seconds... wait.');
+		throw new OutOfBoundsException('A Logged In User Account has attempted more than 1 time in 60 seconds... wait.');
 	}
 	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey'.env('REMOTE_ADDR'), 5, 86400)) {
-		throw new OutOfBoundsException('Your IP address has attempted this more than 5 times in 1 day... wait.');
+		throw new OutOfBoundsException('Your IP address has attempted more than 5 times in 1 day... wait.');
 	}
 	// you can use `limit()` or `checkThenRecord()` -- they are identical methods
 	if (!ClassRegistry::init('Icing.Throttle')->limit('myUniqueKeyAsLimitAlias', 2, 3600)) {
-		throw new OutOfBoundsException('This method has been attempted this more than 2 times in 1 hour... wait.');
+		throw new OutOfBoundsException('This method has been attempted more than 2 times in 1 hour... wait.');
+	}
+
+Also see ThrottleableBehavior:
+
+	if (!$this->MyModel->throttle('someKey', 2, 3600)) {
+		throw new OutOfBoundsException('This method  on MyModel has been attempted more than 2 times in 1 hour... wait.');
 	}
 
 Main Methods:
 
 * checkThenRecord() - shortcut to check, and then, record for a $key
+* limit() - alias to checkThenRecord()
 * check() - checks to see that there are no more than $allowed records for a $key
 * record() - saves a record for a $key (which will $expireInSec)
 * purge() - empties all expired records from table (automatically called on check())

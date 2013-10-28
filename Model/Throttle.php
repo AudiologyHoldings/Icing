@@ -6,18 +6,26 @@
  *
  *	App::uses('Throttle', 'Icing.Model');
  *	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey', 2, 3600)) {
- *		throw new OutOfBoundsException('This method has been attempted this more than 2 times in 1 hour... wait.');
+ *		throw new OutOfBoundsException('This method has been attempted more than 2 times in 1 hour... wait.');
  *	}
  *	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey'.AuthComponent::user('id'), 1, 60)) {
- *		throw new OutOfBoundsException('A Logged In User Account has attempted this more than 1 time in 60 seconds... wait.');
+ *		throw new OutOfBoundsException('A Logged In User Account has attempted more than 1 time in 60 seconds... wait.');
  *	}
  *	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey'.env('REMOTE_ADDR'), 5, 86400)) {
- *		throw new OutOfBoundsException('Your IP address has attempted this more than 5 times in 1 day... wait.');
+ *		throw new OutOfBoundsException('Your IP address has attempted more than 5 times in 1 day... wait.');
+ *	}
+ *
+ * Also see ThrottleableBehavior:
+ *
+ *	$this->MyModel->Behaviors->load('Icing.Throttleable');
+ *	if (!$this->MyModel->throttle('someKey', 2, 3600)) {
+ *		throw new OutOfBoundsException('This method on MyModel has been attempted more than 2 times in 1 hour... wait.');
  *	}
  *
  * Main Methods:
  *
  *   checkThenRecord() - shortcut to check, and then, record for a $key
+ *   limit() - alias to checkThenRecord()
  *   check() - checks to see that there are no more than $allowed records for a $key
  *   record() - saves a record for a $key (which will $expireInSec)
  *   purge() - empties all expired records from table (automatically called on check())

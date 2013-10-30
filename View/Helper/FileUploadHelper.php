@@ -19,6 +19,7 @@
   *      $fileUpload->input(array('var' => 'fileVar', 'model' => 'Picture')); //customized input form.
   *      
   */
+App::uses('AppHelper','View/Helper');
 class FileUploadHelper extends AppHelper{
   var $helpers = array('Html', 'Form');
     
@@ -60,13 +61,13 @@ class FileUploadHelper extends AppHelper{
     */
   function __construct(View $View, $settings = array()){
     if(!Configure::load('file_upload')){
-  		throw Exception('Config' . DS . 'file_upload.php not found. Please copy Icing' . DS . 'Config' . DS . 'file_upload.php.default for example setings');
+    	trigger_error('Config' . DS . 'file_upload.php not found. Please copy Icing' . DS . 'Config' . DS . 'file_upload.php.default for example setings', E_WARNING);
   	}
     $FileUploadSettings = Configure::read('FileUpload');
     
     //setup settings
     $this->settings = array_merge($FileUploadSettings, $this->options);
-    parent::__construct($View, $settings);
+    return parent::__construct($View, $settings);
   }
   
   /**

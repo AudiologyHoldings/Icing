@@ -261,7 +261,7 @@ class Re {
 	 * @param mixed $default null - returned if no path found
 	 * @return mixed
 	 */
-	public static function pluck($data, $paths, $default=null) {
+	public static function pluck($data, $paths=null, $default=null) {
 		if (empty($data)) {
 			return $default;
 		}
@@ -310,7 +310,7 @@ class Re {
 	 * @param mixed $default null - returned if no path found
 	 * @return mixed
 	 */
-	public static function pluckValid($data, $paths, $default=null) {
+	public static function pluckValid($data, $paths=null, $default=null) {
 		if (empty($data)) {
 			return $default;
 		}

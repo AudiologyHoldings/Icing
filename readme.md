@@ -13,6 +13,12 @@ Portable Package of Utilities for CakePHP
 
 * FileUploadBehavior
 * VersionableBehavior
+* SummableBehavior
+* ThrottleableBehavior
+
+# Models
+
+* Throttle
 
 # Datasources
 
@@ -23,6 +29,7 @@ Portable Package of Utilities for CakePHP
 * DatabaseCacheEngine
 * AppTestCase
 * AppTestFixture
+* Re
 
 ## CsvHelper
 
@@ -34,13 +41,13 @@ Easily create and server CSV files.
 		$this->Csv->addRow($row);
 	}
 	echo $this->Csv->render('filename.csv');
-	
+
 ## CkeditorHelper
 
 Easily add Ckeditors to your forms.  Integrates with Ckfinder easily
 
 	echo $this->Ckeditor->replace('ContentBody', array('ckfinder' => true, 'forcePasteAsPlainText' => 'true'));
-	
+
 ## GoogleCalendarHelper
 
 Build reminder links and quick add forms to intergrate with a logged in google calendar user.
@@ -102,7 +109,7 @@ Create *Config/file_upload.php* based on *app/Plugin/Icing/Config/file_upload.ph
 Attach to any model to handle uploads.  Model attached needs name, type, and size fields (customizable)
 
 	var $actsAs = array('Icing.FileUpload');
-	
+
 	var $actsAs = array(
 		'Icing.FileUpload' => array(
 			'uploadDir'    			=> WEB_ROOT . DS . 'files',
@@ -113,11 +120,11 @@ Attach to any model to handle uploads.  Model attached needs name, type, and siz
 			'fileNameFunction' 	=> 'sha1' //execute the Sha1 function on a filename before saving it (default false)
 		)
 	)
-	
+
 Use the built in helper to resize and cache on the fly
 
 	echo $this->FileUpload->image($image['Upload']['name'], 300); //will resize to 300 px wide and cache to webroot/files/resized by default
-  
+
 
 ## VersionableBehavior
 
@@ -162,7 +169,7 @@ Diffs from a version
 
 	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
 	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); //Gets the diff between two different versions.
-	
+
 Save without creating a version
 
 	$this->Model->save($data, array('create_version' => false));
@@ -179,7 +186,7 @@ Allows for an array dataset instead of sql database but can be assosiated with o
 	var $array = array(
 		'datasource' => 'Icing.ArraySource'
 	);
-	
+
 	//Model/ConsumerGuide.php
 	App::uses('AppModel','Model');
 	class ConsumerGuide extends AppModel {
@@ -187,7 +194,7 @@ Allows for an array dataset instead of sql database but can be assosiated with o
 		public $useDbConfig = 'array';
 		public $displayField = 'name';
 		public $primaryKey = 'type';
-		
+
 		public $records = array(
 			array(
 				'type' => 'loved_one',
@@ -198,7 +205,7 @@ Allows for an array dataset instead of sql database but can be assosiated with o
 			),
 		);
 	}
-	
+
 	//Example Uses
 	$this->ConsumerGuide->find('first');
 	$this->ConsumerGuide->find('all', array(
@@ -211,6 +218,67 @@ Allows for an array dataset instead of sql database but can be assosiated with o
 	));
 	$this->ConsumerGuide->field('path', array('ConsumerGuide.type' => 'loved_one'));
 	$this->ConsumerGuide->findByType('loved_one');
+
+## ThrottleableBehavior
+
+This is a convenience shortcut to functionality on the Throttle model.
+Basically it's a very clean and simple way to Throttle anything.
+
+	// setup in the model Behaviors all the time
+	public $actsAs = array('Icing.Throttleable');
+
+	// or load/attach the Behavior
+	$this->MyModel->Behaviors->load('Icing.Throttleable');
+
+	// the default `throttle()` method prefixes the $key with the Model->alias
+	if (!$this->MyModel->throttle('someKey', 2, 3600)) {
+		throw new OutOfBoundsException('This method  on MyModel has been attempted more than 2 times in 1 hour... wait.');
+	}
+	// the `_throttle()` method does not modify $key at all, so it's the same regardless of how you access it
+	if (!$this->MyModel->_throttle('key-could-be-anywhere', 2, 3600)) {
+		throw new OutOfBoundsException('This key has been attempted (from somewhere) more than 2 times in 1 hour... wait.');
+	}
+
+# Models
+
+## Throttle
+
+Simple throttling table/toolset
+
+Common Usage:
+
+	App::uses('Throttle', 'Icing.Model');
+	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey', 2, 3600)) {
+		throw new OutOfBoundsException('This method has been attempted more than 2 times in 1 hour... wait.');
+	}
+	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey'.AuthComponent::user('id'), 1, 60)) {
+		throw new OutOfBoundsException('A Logged In User Account has attempted more than 1 time in 60 seconds... wait.');
+	}
+	if (!ClassRegistry::init('Icing.Throttle')->checkThenRecord('myUniqueKey'.env('REMOTE_ADDR'), 5, 86400)) {
+		throw new OutOfBoundsException('Your IP address has attempted more than 5 times in 1 day... wait.');
+	}
+	// you can use `limit()` or `checkThenRecord()` -- they are identical methods
+	if (!ClassRegistry::init('Icing.Throttle')->limit('myUniqueKeyAsLimitAlias', 2, 3600)) {
+		throw new OutOfBoundsException('This method has been attempted more than 2 times in 1 hour... wait.');
+	}
+
+Also see ThrottleableBehavior:
+
+	if (!$this->MyModel->throttle('someKey', 2, 3600)) {
+		throw new OutOfBoundsException('This method  on MyModel has been attempted more than 2 times in 1 hour... wait.');
+	}
+
+Main Methods:
+
+* checkThenRecord() - shortcut to check, and then, record for a $key
+* limit() - alias to checkThenRecord()
+* check() - checks to see that there are no more than $allowed records for a $key
+* record() - saves a record for a $key (which will $expireInSec)
+* purge() - empties all expired records from table (automatically called on check())
+
+[Unit Tests](https://github.com/AudiologyHoldings/Icing/blob/master/Test/Case/Model/ThrottleTest.php):
+
+	./cake test Icing Model/Throttle
 
 # Libraries
 
@@ -228,7 +296,7 @@ Create database_caches table either using the MyISAM Engine (useful for ability 
 		`duration` int(11) unsigned NOT NULL,
 		UNIQUE KEY `key` (`key`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-	
+
 If you don't plan on storing anything more than 255 characters of json_encoded data, and you don't fear loosing all your caches if your database has to restart, you would benefit from using the MEMORY Engine instead.
 
 	CREATE TABLE IF NOT EXISTS `database_caches` (
@@ -237,7 +305,7 @@ If you don't plan on storing anything more than 255 characters of json_encoded d
 		`duration` int(11) unsigned NOT NULL,
 		UNIQUE KEY `key` (`key`)
 	) ENGINE=MEMORY DEFAULT CHARSET=utf8;
-	
+
 ###  DatabaseCacheEngine Setup
 
 `app/Config/bootstrap.php`
@@ -247,12 +315,12 @@ If you don't plan on storing anything more than 255 characters of json_encoded d
 		'engine' => 'Icing.DatabaseCache',
 		'duration' => '+1 day',
 	));
-	
+
 ### DatabaseCacheEngine Usage
 
 	Cache::write('somekey', 'somevalue', 'database');
 	Cache::read('somekey', 'database');
-	
+
 ## AppTestCase
 
 Easy way to load fixture automatically and in groups.  Look at the file for more usage examples
@@ -262,12 +330,38 @@ Easy way to load fixture automatically and in groups.  Look at the file for more
 	class WhateverTest extends AppTestCase {
 		...
 	}
-	
+
 ## AppTestFixture
 
-Fixes missing fields of records with bogus data so you don't have to worry about it. Look at the file for more usage examples 
-	
+Fixes missing fields of records with bogus data so you don't have to worry about it. Look at the file for more usage examples
+
 	App::uses('AppTestFixture', 'Icing.Lib');
 	class UserFixture extends AppTestFixture {
 		...
 	}
+
+## Re
+
+This is a very simple utility library that comes in quite handy.  View
+[source](https://github.com/AudiologyHoldings/Icing/blob/master/Lib/Re.php)
+and [Unit
+Tests](https://github.com/AudiologyHoldings/Icing/blob/master/Test/Case/Lib/ReTest.php) for more details.
+
+	App::uses('Re', 'Icing.Lib');
+	Re::arrayCSV('a,b,c') ~ Re::stringCSV(array('a', 'b', 'c'));
+	Re::isValid($data); // basically !empty() but allows 0 (by default)
+	Re::pluckValid($data, array('/ModelA/field', '/ModelB/field', '/lastChance'), 'defaultValue'); // gets first valid result for various paths or default value
+	Re::pluck($data, array('/ModelA/field', '/ModelB/field', '/lastChance'), 'defaultValue'); // same as pluckValid() but without the valid check
+	(bool) Re::pluckIsValid($data, array('/ModelA/field', '/ModelB/field', '/lastChance')); // same as pluckValid() and simply returns true/false
+	Re::before($string, ',') == 'all of the string before the first comma';
+	Re::after($string, '.') == 'all of the string after the last period';
+
+## Base62
+
+Transform any (large) int into Base62, useful for short URLs - see [Unit
+Tests](https://github.com/AudiologyHoldings/Icing/blob/master/Test/Case/Lib/Base62Test.php)
+for examples
+
+	App::uses('Base62', 'Icing.Lib');
+	Base62::encode(1234567890) == '1ly7vk';
+

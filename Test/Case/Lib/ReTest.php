@@ -125,7 +125,11 @@ class AsTest extends CakeTestCase {
 	}
 
 	public function testPluckValid() {
-		$input = array('User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)));
+		$input = array(
+			'User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)),
+			'rootlevel' => 'ROOTa',
+			'altroot' => 'ROOTb',
+		);
 		$this->assertEquals(Re::pluckValid($input, '/User/id'), 1);
 		$this->assertEquals(Re::pluckValid($input, '/User/name'), 'first Name');
 		$this->assertEquals(Re::pluckValid($input, '/User/nest/id'), 2);
@@ -143,6 +147,11 @@ class AsTest extends CakeTestCase {
 		$this->assertEquals(Re::pluckValid($input, '/User/false'), null); // empty match = default
 		$this->assertEquals(Re::pluckValid($input, '/User/zero'), 0); // 0 isValid = match
 		$this->assertEquals(Re::pluckValid($input, '/User/nested/emtpy'), '');
+		$this->assertEquals(Re::pluckValid($input, '/rootlevel'), 'ROOTa');
+		$this->assertEquals(Re::pluckValid($input, '/altroot'), 'ROOTb');
+		$this->assertEquals(Re::pluckValid($input, 'rootlevel'), 'ROOTa');
+		$this->assertEquals(Re::pluckValid($input, 'altroot'), 'ROOTb');
+		$this->assertEquals(Re::pluckValid($input, 'badroot'), null);
 		// now look for array of paths (first match returns)
 		$this->assertEquals(Re::pluckValid($input, array('/User/id', '/User/id')), 1);
 		$this->assertEquals(Re::pluckValid($input, array('/User/id', '/User/name')), 1);
@@ -156,6 +165,8 @@ class AsTest extends CakeTestCase {
 		$this->assertEquals(Re::pluckValid($input, array('/User/true', '/bad-path')), true);
 		$this->assertEquals(Re::pluckValid($input, array('/User/empty', '/User/id')), 1); // /User/empty not valid, so we jump to second path
 		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/User/empty')), null); // empty match = default
+		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/rootlevel')), 'ROOTa'); // second $path matches root level
+		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/other-bad', '/crapy-path/again', '/altroot', '/User/id')), 'ROOTb'); // altroot $path matches root level
 	}
 
 

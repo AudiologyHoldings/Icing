@@ -21,8 +21,12 @@ class ThrottleableBehavior extends ModelBehavior {
 
 	/**
 	 * Setup the behavior
+	 *
+	 * @param AppModel $Model Model instance
+	 * @param array $settings
+	 * @return boolean
 	 */
-	public function setUp(Model $Model, $settings = array()){
+	public function setUp(Model $Model, $settings = array()) {
 		$this->IcingThrottle = ClassRegistry::init('Icing.Throttle');
 		return parent::setUp($Model, $settings);
 	}
@@ -35,6 +39,7 @@ class ThrottleableBehavior extends ModelBehavior {
 	 * If you want the key to NOT be unique to this Model's Alias,
 	 * instead use `_throttle()`
 	 *
+	 * @param AppModel $Model Model instance
 	 * @param string $key
 	 * @param int $allowed [1]
 	 * @param int $expireInSec [1800]
@@ -56,6 +61,7 @@ class ThrottleableBehavior extends ModelBehavior {
 	 * If you want the key to be unique to this Model's Alias,
 	 * instead use `throttle()`
 	 *
+	 * @param AppModel $Model Model instance
 	 * @param string $key
 	 * @param int $allowed [1]
 	 * @param int $expireInSec [1800]

@@ -29,10 +29,12 @@ Class PhpTidy {
 	 */
 	public static function string($input) {
 		$path = TMP . 'phptidy-' . md5($input) . '.php';
+		$pathTemp = TMP . '.phptidy-' . md5($input) . '.php.phptidybak~';
 		file_put_contents($path, $input);
 		PhpTidy::file($path);
 		$output = file_get_contents($path);
 		unlink($path);
+		@unlink($pathTemp);
 		return $output;
 	}
 

@@ -60,8 +60,8 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 * @param AppModel $Model Model instance
 	 * @return boolean true to continue, false to abort the save
 	 */
-	public function beforeValidate($Model) {
-		return $this->beforeSave($Model);
+	public function beforeValidate(Model $Model, $options = array()) {
+		return $this->beforeSave($Model, $options);
 	}
 
 	/**
@@ -72,7 +72,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 * @param AppModel $Model Model instance
 	 * @return boolean true to continue, false to abort the save
 	 */
-	public function beforeSave($Model) {
+	public function beforeSave(Model $Model, $options = array()) {
 		if (empty($Model->data)) {
 			return true;
 		}

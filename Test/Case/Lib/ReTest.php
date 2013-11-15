@@ -2,10 +2,10 @@
 App::uses('Re', 'Icing.Lib');
 
 /**
- * As Library Test Case
+ * Re Library Test Case
  *
  */
-class AsTest extends CakeTestCase {
+class ReTest extends CakeTestCase {
 	public $fixtures = array();
 	public $previousConfig = null;
 

@@ -49,7 +49,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 * @return boolean
 	 */
 	public function setUp(Model $Model, $settings = array()) {
-		$this->settings[$model->alias] = array_merge($this->_defaults, $settings);
+		$this->settings[$Model->alias] = array_merge($this->_defaults, $settings);
 		return parent::setUp($Model, $settings);
 	}
 

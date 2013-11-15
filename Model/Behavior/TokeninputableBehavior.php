@@ -45,7 +45,7 @@ class TokeninputableBehavior extends ModelBehavior {
 	 * @param array $config
 	 */
 	public function setUp(Model $Model, $settings = array()) {
-		$this->settings[$model->alias] = array_merge($this->_defaults, $settings);
+		$this->settings[$Model->alias] = array_merge($this->_defaults, $settings);
 		return parent::setUp($Model, $settings);
 	}
 

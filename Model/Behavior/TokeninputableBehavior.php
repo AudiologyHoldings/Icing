@@ -97,7 +97,7 @@ class TokeninputableBehavior extends ModelBehavior {
 	 *
 	 * @return boolean
 	 */
-	public function beforeValidate($Model) {
+	public function beforeValidate(Model $Model, $options = array()) {
 		$this->dataCleanupTokenInput($Model);
 		return true;
 	}
@@ -107,7 +107,7 @@ class TokeninputableBehavior extends ModelBehavior {
 	 *
 	 * @return boolean
 	 */
-	public function beforeSave($Model) {
+	public function beforeSave(Model $Model, $options = array()) {
 		$this->dataCleanupTokenInput($Model);
 		return true;
 	}
@@ -122,7 +122,7 @@ class TokeninputableBehavior extends ModelBehavior {
 	 * @return boolean true to continue, false to abort the save
 	 * @access public
 	 */
-	public function afterSave($Model) {
+	public function afterSave(Model $Model, $created, $options = array()) {
 		#extract($this->settings[$Model->alias]);
 		if (!$Model->id) {
 			throw new OutOfBoundsException('TokeninputableBehavior::afterSave() missing the id');

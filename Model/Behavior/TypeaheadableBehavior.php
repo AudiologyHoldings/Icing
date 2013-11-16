@@ -103,7 +103,20 @@ class TypeaheadableBehavior extends ModelBehavior {
 		if ($assocName == $alias) {
 			return $Model;
 		}
-		return $Model->{$assocName};
+		if (isset($Model->{$assocName}) && is_object($Model->{$assocName})) {
+			return $Model->{$assocName};
+		}
+		if (strpos($assocName, '.') !== false) {
+			list($plugin, $assocName2) = explode('.', $assocName);
+			if (isset($Model->{$assocName2}) && is_object($Model->{$assocName2})) {
+				return $Model->{$assocName2};
+			}
+		}
+		$Model2 = ClassRegistry::init($assocName);
+		if (is_object($Model2)) {
+			return $Model2;
+		}
+		throw new OutOfBoundsException("TypeaheadableBehavior::assocModel() unable to find associated model: {$Model->alias}->{$assocName}");
 	}
 
 	/**

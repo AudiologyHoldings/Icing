@@ -31,6 +31,10 @@ Portable Package of Utilities for CakePHP
 * AppTestFixture
 * Re
 
+# Shells
+
+* FixtureUpdateShell
+
 ## CsvHelper
 
 Easily create and server CSV files.
@@ -365,3 +369,34 @@ for examples
 	App::uses('Base62', 'Icing.Lib');
 	Base62::encode(1234567890) == '1ly7vk';
 
+## PhpTidy
+
+
+This Lib will allow you to easily "tidy" or "beautify" files or inline code, to
+CakePHP standards/conventions.  The "engine" for it is currently PhpTidy
+(though we may switch to code sniffer or something).
+
+*Convenience wrapper for phptidy.php script in app/Plugin/Icing/Vendor/phptidy.php*
+
+Usage:
+
+    App::uses('PhpTidy', 'Icing.Lib');
+    $formatted = PhpTidy::string($unformattedPhpCode);
+    // or //
+    PhpTidy::string(APP . 'path/to/php-file.php');
+
+## FixtureUpdateShell
+
+Attempts to intelligently update your fixtures to
+
+ * force it to use Icing.AppTestFixture
+ * update the $fields to always match the current database schema (doesn't touch records, or any other config)
+ * run Icing.PhpTidy against the fixutre, to correct formatting
+
+Bonus: it will also verify all fixtures can be found in the database table
+
+Usage:
+
+    ./cake Icing.FixtureUpdate
+    ./cake Icing.FixtureUpdate help
+    ./cake Icing.FixtureUpdate --plugin MyPlugin --connection my_connection

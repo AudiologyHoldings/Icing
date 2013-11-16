@@ -148,6 +148,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 				return false;
 			}
 			$fkname = $fkid = $Model->data[$Model->alias][$foreignKey];
+			#debug(compact('assocType', 'assocName', 'foreignKey', 'fkname', 'fkid'));
 		}
 		if ($assocType == 'hasOne') {
 			if (empty($Model->data[$assocName]['id'])) {
@@ -157,6 +158,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 				return false;
 			}
 			$fkname = $fkid = $Model->data[$assocName]['id'];
+			#debug(compact('assocType', 'assocName', 'foreignKey', 'fkname', 'fkid'));
 		}
 		$assocModel = $this->assocModel($Model, $assocName);
 		$assocModel->id = $fkid;
@@ -182,6 +184,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 			throw new OutOfBoundsException('TypeaheadableBehavior::nameToId() conditions are empty, configure ' . $assocName . ' filterArgs for  ' . $foreignKey);
 		}
 		$fkid = $assocModel->field($assocModel->primaryKey, $conditions);
+		#debug(compact('fkid', 'fkname', 'conditions'));
 		if (empty($fkid)) {
 			// not found, add a new record (if we can)
 			$fkid = $this->nameToNewId($Model, $assocName, $fkname);
@@ -234,7 +237,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 */
 	public function idsToNames($Model, $record, $fields = null) {
 		// is this a find all?
-		if (Set::numeric(array_values($record))) {
+		if (Set::numeric(array_keys($record))) {
 			foreach (array_keys($record) as $i) {
 				$record[$i] = $this->idsToNames($Model, $record, $fields);
 			}

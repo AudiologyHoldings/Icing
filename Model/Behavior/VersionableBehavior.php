@@ -73,8 +73,11 @@ class VersionableBehavior extends ModelBehavior {
 	* @param Model model
 	*/
 	public function beforeSave(Model $Model, $options = array()){
-		if(!isset($options['create_version']) || (isset($options['create_version']) && $options['create_version'])){
-			$this->saveVersion($Model);
+		if (!array_key_exists('create_version', $options) || !empty($options['create_version'])) {
+			if (!$this->saveVersion($Model)) {
+				// error?
+				//die('unable to save');
+			}
 		}
 		return $Model->beforeSave();
 	}

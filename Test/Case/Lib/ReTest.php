@@ -2,11 +2,12 @@
 App::uses('Re', 'Icing.Lib');
 
 /**
- * As Library Test Case
+ * Re Library Test Case
  *
  */
-class AsTest extends CakeTestCase {
+class ReTest extends CakeTestCase {
 	public $fixtures = array();
+	public $previousConfig = null;
 
 	/**
 	 * setUp method
@@ -14,6 +15,8 @@ class AsTest extends CakeTestCase {
 	 * @return void
 	 */
 	public function setUp() {
+		$this->previousConfig = Re::$config;
+		Re::$config = Re::$defaultConfig;
 		parent::setUp();
 		//$this->User = ClassRegistry::init('User');
 	}
@@ -25,6 +28,7 @@ class AsTest extends CakeTestCase {
 	 */
 	public function tearDown() {
 		unset($this->User);
+		Re::$config = $this->previousConfig;
 		parent::tearDown();
 	}
 
@@ -121,7 +125,11 @@ class AsTest extends CakeTestCase {
 	}
 
 	public function testPluckValid() {
-		$input = array('User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)));
+		$input = array(
+			'User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)),
+			'rootlevel' => 'ROOTa',
+			'altroot' => 'ROOTb',
+		);
 		$this->assertEquals(Re::pluckValid($input, '/User/id'), 1);
 		$this->assertEquals(Re::pluckValid($input, '/User/name'), 'first Name');
 		$this->assertEquals(Re::pluckValid($input, '/User/nest/id'), 2);
@@ -139,6 +147,11 @@ class AsTest extends CakeTestCase {
 		$this->assertEquals(Re::pluckValid($input, '/User/false'), null); // empty match = default
 		$this->assertEquals(Re::pluckValid($input, '/User/zero'), 0); // 0 isValid = match
 		$this->assertEquals(Re::pluckValid($input, '/User/nested/emtpy'), '');
+		$this->assertEquals(Re::pluckValid($input, '/rootlevel'), 'ROOTa');
+		$this->assertEquals(Re::pluckValid($input, '/altroot'), 'ROOTb');
+		$this->assertEquals(Re::pluckValid($input, 'rootlevel'), 'ROOTa');
+		$this->assertEquals(Re::pluckValid($input, 'altroot'), 'ROOTb');
+		$this->assertEquals(Re::pluckValid($input, 'badroot'), null);
 		// now look for array of paths (first match returns)
 		$this->assertEquals(Re::pluckValid($input, array('/User/id', '/User/id')), 1);
 		$this->assertEquals(Re::pluckValid($input, array('/User/id', '/User/name')), 1);
@@ -152,8 +165,21 @@ class AsTest extends CakeTestCase {
 		$this->assertEquals(Re::pluckValid($input, array('/User/true', '/bad-path')), true);
 		$this->assertEquals(Re::pluckValid($input, array('/User/empty', '/User/id')), 1); // /User/empty not valid, so we jump to second path
 		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/User/empty')), null); // empty match = default
+		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/rootlevel')), 'ROOTa'); // second $path matches root level
+		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/other-bad', '/crapy-path/again', '/altroot', '/User/id')), 'ROOTb'); // altroot $path matches root level
 	}
 
+	/*
+	 * BROKEN on php 5.3 due to a problem with Set::extract() - which is now deprecated anyway
+	public function testPluckValid_real_world_bug7527() {
+		$input = array('6b85b634f2be6efe21fde096f53c0a51', 'files|a|00400|00499', 'member_id' => '44000', 'filter_type' => 'ImagesSwfs');
+		$this->assertEquals(Re::pluckValid($input, '/member_id'), '44000');
+		$this->assertEquals(Re::pluckValid($input, 'member_id'), '44000');
+		$this->assertEquals(Re::pluckValid($input, '/bad-path'), null);
+		$this->assertEquals(Re::pluckValid($input, '/files'), null);
+		$this->assertEquals(Re::pluckValid($input, '/a'), null);
+	}
+	 */
 
 	public function testPluckIsValid() {
 		$input = array('User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)));
@@ -195,5 +221,63 @@ class AsTest extends CakeTestCase {
 		$this->assertEquals('valid', Re::after('invalid,valid'));
 		$this->assertEquals('valid', Re::after('inva,lid,valid'));
 		$this->assertEquals('valid', Re::after('invalid[spliter]valid', '[spliter]'));
+	}
+
+	public function testMergeIfEmpty() {
+		$data = array(
+			'id' => 1,
+			'name' => 'first Name',
+			'empty' => '',
+			'null' => null,
+			'true' => true,
+			'false' => false,
+			'zero' => 0,
+		);
+		$defaults = array(
+			'new' => 'sss',
+			'id' => 'ttt',
+			'empty' => 'uuu',
+			'null' => 'vvv',
+			'name' => 'wwww',
+			'true' => 'xxx',
+			'false' => 'yyy',
+			'zero' => 'zzz',
+		);
+		$expect = array(
+			'new' => 'sss',
+			'id' => 1,
+			'name' => 'first Name',
+			'empty' => 'uuu',
+			'null' => 'vvv',
+			'true' => true,
+			'false' => 'yyy',
+			'zero' => 0,
+		);
+		$this->assertEquals($expect, Re::mergeIfEmpty($defaults, $data));
+		// try with nested arrays, default un-nested == simple merge, no overwrites
+		$data = array('User' => $data);
+		$data['Alt'] = array('id' => 5, 'zero' => 0);
+		$data['User']['Nest'] = array('id' => 5, 'zero' => 0);
+		$expect = $defaults;
+		$expect['Alt'] = $data['Alt'];
+		$expect['User'] = $data['User'];
+		$this->assertEquals($expect, Re::mergeIfEmpty($defaults, $data));
+		// try with nested defaults/data
+		$defaults = array('User' => $defaults);
+		$expect = array(
+			'User' => array(
+				'new' => 'sss',
+				'id' => 1,
+				'name' => 'first Name',
+				'empty' => 'uuu',
+				'null' => 'vvv',
+				'true' => true,
+				'false' => 'yyy',
+				'zero' => 0,
+				'Nest' => $data['User']['Nest'],
+			),
+			'Alt' => $data['Alt'],
+		);
+		$this->assertEquals($expect, Re::mergeIfEmpty($defaults, $data));
 	}
 }

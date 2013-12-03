@@ -27,8 +27,20 @@
  *
  * OR: you can create a Configure::write('fixtures');
  *
- * @package templates
- * @subpackage templates.libs
+ *
+ * Extra Assertions
+ *
+ * $this->assertArrayCompare($expect, $result);
+ *   This is really useful because it will only consider keys which exist in $expect
+ *   So if you don't know what the 'created' or 'modified' would be and you don't care
+ *   you can just pass in an $expect without those fields, and they aren't
+ *   considered.  (All fields passed into $expect are considered)
+ *
+ * $this->assertInArray($value, $result);
+ * $this->assertKeyExists($key, $result);
+ * $this->assertIsEmpty($result);
+ *
+ * @package Icing
  */
 
 // auto load the AppTestFixture class, just to be neighborly
@@ -223,6 +235,40 @@ class AppTestCase extends CakeTestCase {
 		}
 		return $config;
 	}
+	
+	/**
+	* Loads a fixture group from config and writes it on demand
+	* @usage
+	*   app/Test/Case/Config/fixture_groups.php
+			$config = array(
+				'Basic' => array(
+					'app.user',
+					'app.blog'
+				),
+				'Invoice' => array(
+					'app.invoice',
+					'app.user',
+					//...
+				)
+			);
+			
+			In Test
+			public funciton __construct() {
+				$this->loadFixtureGroup('fixture_groups');
+				return parent::__construct();
+			}
+	* @param string config string (default fixture_groups)
+	* @return boolean success
+	*/
+	public function loadFixtureGroup($config = 'fixture_groups') {
+		$groups = $this->loadConfig($config);
+		if (empty($groups)) {
+			$error = __("AppTestCase::loadFixtureGroup() - no group defined in %s.php", true);
+			trigger_error(sprintf($error, $config), E_USER_WARNING);
+			return false;
+		}
+		return Configure::write('fixtureGroupsConfig', $groups);
+	}
 
 	/**
 	 * Solves Plugin Fixture dependancies.  Called in AppTestCase::__construct to solve
@@ -302,6 +348,8 @@ class AppTestCase extends CakeTestCase {
 	 * @param array $result
 	 */
 	public function assertArrayCompare($expect, $result, $message = 'sorry, the arrays did not match') {
+		$expect = Set::flatten($expect);
+		$result = Set::flatten($result);
 		$compare = array_intersect_key($result, $expect);
 		asort($expect);
 		asort($compare);
@@ -409,6 +457,20 @@ class AppTestCase extends CakeTestCase {
 		$array = $new;
 		return true;
 	}
+
+	/**
+	* Reloads the routes configuration from config/routes.php, and compiles
+	* all routes found
+	*
+	* @return boolean True if config reload was a success, otherwise false
+	*/
+	public function loadRoutes() {
+		App::uses('Router', 'Routing');
+		Router::reload();
+		if (!@include(APP . 'Config' . DS . 'routes.php')) {
+			return false;
+		}
+		Router::parse('/');
+		return true;
+	}
 }
-
-

@@ -74,7 +74,8 @@ class SummableBehavior extends ModelBehavior {
 				$query['fields'] = explode(',', $query['fields']);
 			}
 			if (is_array($query['fields']) && !empty($query['fields'])) {
-				$field = trim(array_shift($query['fields']));
+				$field = array_shift($query['fields']);
+				$field = trim($field);
 			}
 			if (empty($field)) {
 				throw new OutOfBoundsException(__('Summable: findSum: Missing "fields" paramter - should have a single field to sum', true));
@@ -92,7 +93,8 @@ class SummableBehavior extends ModelBehavior {
 			return 0;
 		}
 		// get to the value passed back (should only be one, it'll be the first
-		return array_shift(array_shift(array_shift($results)));
+		$results = Hash::flatten($results);
+		return array_shift($results);
 	}
 }
 

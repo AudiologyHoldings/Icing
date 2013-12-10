@@ -135,6 +135,10 @@ class FixtureUpdateShell extends Shell {
 	 * @return boolean
 	 */
 	public function processFixture($path) {
+		//Skip fixture update if we don't have a table definaiton, custom dbconfig
+		if ($this->getUseTable($path) === false) {
+			return true;
+		}
 		// cleanup the basics
 		$appUses = "App::uses('AppTestFixture', 'Icing.Lib');";
 		$body = file_get_contents($path);
@@ -171,13 +175,24 @@ class FixtureUpdateShell extends Shell {
 		$new = $this->processFixtureFieldsNew($path, $body);
 		return $this->processFixtureFieldsInject($path, $body, $new);
 	}
+	
+	/**
+	* Get the model from the path
+	*/
+	protected function getModelName($path) {
+		return str_replace(array('Fixture', '.php'), '', basename($path));
+	}
+	
+	protected function getUseTable($path) {
+		$model = $this->getModelName($path);
+		return ClassRegistry::init($model)->useTable;
+	}
 
 	/**
 	 * Fixture Fields - get new fields text
 	 */
 	protected function processFixtureFieldsNew($path, $body) {
-		$model = str_replace(array('Fixture', '.php'), '', basename($path));
-		$useTable = Inflector::tableize($model);
+		$useTable = $this->getUseTable($path);
 		$useTableSingular = Inflector::singularize($useTable);
 		$data = $this->getSchema();
 		if (!isset($data['tables'][$useTable]) && isset($data['tables'][$useTableSingular])) {
@@ -185,6 +200,7 @@ class FixtureUpdateShell extends Shell {
 		}
 		if (!isset($data['tables'][$useTable])) {
 			debug(array_keys($data['tables']));
+			debug($useTable);
 			$this->error('Could not find your selected table ' . $useTable);
 			return false;
 		}

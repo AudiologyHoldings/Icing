@@ -1,4 +1,4 @@
-<?php
+<?php 
 class IcingSchema extends CakeSchema {
 
 	public function before($event = array()) {
@@ -22,7 +22,7 @@ class IcingSchema extends CakeSchema {
 		'id' => array('type' => 'string', 'null' => false, 'default' => null, 'length' => 36, 'key' => 'primary', 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'model_id' => array('type' => 'string', 'null' => false, 'default' => null, 'length' => 50, 'key' => 'index', 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'user_id' => array('type' => 'integer', 'null' => true, 'default' => null),
-		'model' => array('type' => 'string', 'null' => false, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
+		'model' => array('type' => 'string', 'null' => false, 'default' => null, 'key' => 'index', 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'json' => array('type' => 'text', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'created' => array('type' => 'datetime', 'null' => true, 'default' => null, 'key' => 'index'),
 		'url' => array('type' => 'string', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
@@ -31,20 +31,21 @@ class IcingSchema extends CakeSchema {
 		'indexes' => array(
 			'PRIMARY' => array('column' => 'id', 'unique' => 1),
 			'model_id' => array('column' => array('model_id', 'model'), 'unique' => 0),
-			'created' => array('column' => 'created', 'unique' => 0)
+			'created' => array('column' => 'created', 'unique' => 0),
+			'model' => array('column' => 'model', 'unique' => 0),
+			'model_id_2' => array('column' => 'model_id', 'unique' => 0)
 		),
-		'tableParameters' => array('charset' => 'utf8', 'collate' => 'utf8_general_ci', 'engine' => 'MyISAM')
+		'tableParameters' => array('charset' => 'utf8', 'collate' => 'utf8_general_ci', 'engine' => 'InnoDB')
 	);
 
 	public $throttles = array(
 		'id' => array('type' => 'string', 'null' => false, 'default' => null, 'length' => 36, 'key' => 'primary', 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'created' => array('type' => 'datetime', 'null' => true, 'default' => null),
 		'key' => array('type' => 'string', 'null' => false, 'default' => null, 'length' => 512, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
-		'expire_epoch' => array('type' => 'integer', 'null' => false, 'default' => '0', 'length' => 12),
+		'expire_epoch' => array('type' => 'integer', 'null' => false, 'default' => '0', 'length' => 12, 'key' => 'index'),
 		'indexes' => array(
 			'PRIMARY' => array('column' => 'id', 'unique' => 1),
-			'type' => array('column' => array('key', 'expire_epoch'), 'unique' => 0),
-			'type' => array('column' => array('expire_epoch'), 'unique' => 0),
+			'type' => array('column' => 'expire_epoch', 'unique' => 0)
 		),
 		'tableParameters' => array('charset' => 'utf8', 'collate' => 'utf8_general_ci', 'engine' => 'MEMORY')
 	);

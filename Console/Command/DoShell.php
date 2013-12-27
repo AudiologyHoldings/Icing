@@ -47,10 +47,27 @@ class DoShell extends AppShell {
 				'help' => 'The Model\'s method',
 				'required' => false,
 			),
-			'params' => array(
-				'help' => 'optional params to pass',
+			/* Cakephp is awesome, who ever needed ARGV? */
+			'param1' => array(
+				'help' => 'optional param to pass',
 				'required' => false,
-			)
+			),
+			'param2' => array(
+				'help' => 'optional param to pass',
+				'required' => false,
+			),
+			'param3' => array(
+				'help' => 'optional param to pass',
+				'required' => false,
+			),
+			'param4' => array(
+				'help' => 'optional param to pass',
+				'required' => false,
+			),
+			'param5' => array(
+				'help' => 'optional param to pass',
+				'required' => false,
+			),
 		));
 		$parser->addOptions(array(
 			'plugin' => array(

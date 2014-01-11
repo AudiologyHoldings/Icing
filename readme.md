@@ -393,10 +393,25 @@ Usage:
 This is an extension of the HttpSocket utility, customized and organized to
 help interact with ElasticSearch.
 
+
+Setup:
+
+Copy the default `ElasticSearchIndex` configuration into your app and edit it
+to suit your setup.
+
+```
+cp app/Plugin/Icing/Config/elastic_search_request.php.default app/Config/elastic_search_request.php
+```
+
+Note that there's a `default` config and a `test` config which will override
+the `default` config...  But only if your tests set the following Configure variable:
+
+```
+Configure::write('inUnitTest', true);
+```
+
 Usage:
 
-    // Configure::load('elastic_search_request');
-    //   cp app/Plugin/Icing/Config/elastic_search_request.php.default app/Config/elastic_search_request.php
     App::uses('ElasticSearchRequest', 'Icing.Lib');
     $this->ESR = new ElasticSearchRequest(array('index' => 'myindex', 'table' => 'mytable'));
     $records = $this->ESR->search('query string');

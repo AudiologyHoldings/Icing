@@ -30,6 +30,9 @@ Portable Package of Utilities for CakePHP
 * AppTestCase
 * AppTestFixture
 * Re
+* Base62
+* PhpTidy
+* ElasticSearchRequest
 
 # Shells
 
@@ -384,6 +387,52 @@ Usage:
     $formatted = PhpTidy::string($unformattedPhpCode);
     // or //
     PhpTidy::string(APP . 'path/to/php-file.php');
+
+## ElasticSearchRequest
+
+This is an extension of the HttpSocket utility, customized and organized to
+help interact with ElasticSearch.
+
+Usage:
+
+    // Configure::load('elastic_search_request');
+    //   cp app/Plugin/Icing/Config/elastic_search_request.php.default app/Config/elastic_search_request.php
+    App::uses('ElasticSearchRequest', 'Icing.Lib');
+    $this->ESR = new ElasticSearchRequest(array('index' => 'myindex', 'table' => 'mytable'));
+    $records = $this->ESR->search('query string');
+    $rawResponse = $this->ESR->search('query string', array(), true);
+    // -------------
+    $bool = $this->ESR->createIndex('mynewindex');
+    $mapping = array(
+      "test_table" => array(
+        "properties" => array(
+          "model" => array(
+            "type" => "string",
+            "store" => "yes",
+            ),
+          "association_key" => array(
+            "type" => "string",
+            "store" => "yes",
+          ),
+          "data" => array(
+            "type" => "string",
+            "store" => "yes",
+          )
+        )
+      )
+    );
+    $bool = $this->ESR->createMapping($mapping);
+    $data = array(
+      "model" => "MyExample",
+      "association_key" => "12345",
+      "data" => "here is some raw text data, great to search against",
+    );
+    $elastic_search_id = $this->ESR->createRecord($data);
+    $data = $this->ESR->getRecord($elastic_search_id);
+    $elastic_search_id = $this->ESR->updateRecord($elastic_search_id, $data);
+    $bool = $this->ESR->deleteRecord($elastic_search_id);
+    $bool = $this->ESR->deleteIndex('mynewindex');
+    $mapping = $this->ESR->getMapping();
 
 ## FixtureUpdateShell
 

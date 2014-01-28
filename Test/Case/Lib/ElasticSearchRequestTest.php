@@ -92,7 +92,7 @@ class ElasticSearchRequestTest extends CakeTestCase {
 			$id = $this->ESR->createRecord($data, $request);
 			$this->records[$i]['_id'] = $id;
 		}
-		sleep(1);
+		sleep(2);
 	}
 
 	/**
@@ -187,9 +187,9 @@ class ElasticSearchRequestTest extends CakeTestCase {
 
 	public function testMapping() {
 		$this->ESR->deleteIndex($this->index);
-		sleep(1);
+		sleep(3);
 		$this->ESR->createIndex($this->index);
-		sleep(1);
+		sleep(3);
 		$request = array('table' => 'test_table');
 		$this->assertTrue($this->ESR->createMapping($this->mapping, $request));
 		$expect = $this->mapping;

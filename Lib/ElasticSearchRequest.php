@@ -310,6 +310,7 @@ class ElasticSearchRequest extends HttpSocket {
 			if (preg_match('#IndexMissingException\[\[(.+)\] missing\]#', $error, $match)) {
 				$index = $match[1];
 				if ($this->createIndex($index, $request) && empty($this->retrying)) {
+					sleep(1);
 					$this->retrying = true; // retry -- watch out for a loop
 					$this->log('retrying');
 					return $this->request($request);

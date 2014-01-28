@@ -187,7 +187,9 @@ class ElasticSearchRequestTest extends CakeTestCase {
 
 	public function testMapping() {
 		$this->ESR->deleteIndex($this->index);
+		sleep(1);
 		$this->ESR->createIndex($this->index);
+		sleep(1);
 		$request = array('table' => 'test_table');
 		$this->assertTrue($this->ESR->createMapping($this->mapping, $request));
 		$expect = $this->mapping;

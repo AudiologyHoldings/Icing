@@ -389,36 +389,44 @@ All of these methods accept a `filterCallback` as the last argument
 * `null`  will run Hash::filter($data) to remove all empties
 * otherwise  will run Hash::filter($data, $filterCallback)
 
-    Pluck::all() --> array()
-      the only real benifit to this is, you can aggregate results from multiple paths
-          Pluck::all($user, 'User.id') == array(123)
-          Pluck::all($user, array('Bad.path', 'User.id', 'User.name')) == array(123, 'john doe')
+	Pluck::all() --> array()
+		the only real benifit to this is, you can aggregate results from multiple paths
+	Pluck::all($user, 'User.id') == array(123)
+	Pluck::all($user, array('Bad.path', 'User.id', 'User.name')) == array(123, 'john doe')
 
-    Pluck::firstPath() --> array()
-      the first result which matches any path (in order) returns
-        note: we do filter data first, so unless you disable filtering, it's the first non-empty result.
-          Pluck::firstPath($user, 'User.id') == array(123)
-          Pluck::firstPath($user, array('Bad.path', 'User.id', 'User.name')) == array(123)
+	Pluck::firstPath() --> array()
+		the first result which matches any path (in order) returns
+		note: we do filter data first, so unless you disable filtering, it's the first non-empty result.
+	Pluck::firstPath($user, 'User.id') == array(123)
+	Pluck::firstPath($user, array('Bad.path', 'User.id', 'User.name')) == array(123)
 
-    Pluck::firstPathOrDefault() --> array() or $default
-      the output of Pluck::firstPath()
-        if empty, we instead return a $default argument
-          Pluck::firstPathOrDefault($user, 'Bad.path', 'default text') == 'default text'
-          Pluck::firstPathOrDefault($user, 'Bad.path', array('default', 'array')) == array('default', 'array')
+	Pluck::firstPathOrDefault() --> array() or $default
+		the output of Pluck::firstPath()
+		if empty, we instead return a $default argument
+	Pluck::firstPathOrDefault($user, 'Bad.path', 'default text') == 'default text'
+	Pluck::firstPathOrDefault($user, 'Bad.path', array('default', 'array')) == array('default', 'array')
 
-    Pluck::one() --> value {string or whatever} or $default
-      the output of Pluck::firstPath()
-        but we only return the "current" or first value...
-        also, if empty, we instead return a $default argument
-          Pluck::one($user, 'User.id') == 123
-          Pluck::one($user, array('Bad.path', 'User.id', 'User.name')) == 123
-          Pluck::one($user, 'Bad.path', 'non-user') == 'non-user'
+	Pluck::one() --> value {string or whatever} or $default
+		the output of Pluck::firstPath()
+		but we only return the "current" or first value...
+		also, if empty, we instead return a $default argument
+	Pluck::one($user, 'User.id') == 123
+	Pluck::one($user, array('Bad.path', 'User.id', 'User.name')) == 123
+	Pluck::one($user, 'Bad.path', 'non-user') == 'non-user'
+		data = string/int/etc = passthrough
+	Pluck::one('as_string@example.com', 'User.email', 'no email') == 'as_string@example.com'
+	Pluck::one(0, 'User.email', 'no email') == '0'
+		data = null or false or empty array or empty string = default
+	Pluck::one(array(), 'User.email', 'no email') == 'no email'
+	Pluck::one(null, 'User.email', 'no email') == 'no email'
+	Pluck::one(false, 'User.email', 'no email') == 'no email'
+	Pluck::one('', 'User.email', 'no email') == 'no email'
 
-    Pluck::oneEmpties()
-      the same as Pluck::one() but $filterCallback=false, allowing empties
+	Pluck::oneEmpties()
+		the same as Pluck::one() but $filterCallback=false, allowing empties
 
-    Pluck::allEmpty()
-      the same as (!empty(Pluck::all()))
+	Pluck::allEmpty()
+		the same as (!empty(Pluck::all()))
 
 If you find yourself doing: `current(Hash::extract($data, 'User.id'))` then
 checkout `Pluck::one($data, 'User.id')`
@@ -426,6 +434,17 @@ checkout `Pluck::one($data, 'User.id')`
 Likewise, use that with multiple paths and return the first valid value we find
 at any of those paths.
 
+Here's a pretty decent use case for this Lib:
+
+	$user_id = Pluck::one($userOrId, array('User.id', 'Account.user_id', 'user_id', 'id'), 'guest');
+
+This will return `$userOrId` if it is a valid ID (a non-array, not empty)
+
+Or if `$serOrId` is an array, it will return the first valid result from any of
+the paths offerd (left = first/priority).
+
+If no valid paths found, returns the default which is set to 'guest' (if not
+specific it is `null`).
 
 ## Base62
 

@@ -343,6 +343,21 @@ class PluckTest extends CakeTestCase {
 		}
 	}
 
+	public function testOnePassthroughInputs() {
+		// pass in a non-array and we just return it, without trying paths
+		$this->assertEquals(Pluck::one('uuid', 'User.id', 'default'), 'uuid');
+		$this->assertEquals(Pluck::one(true, 'User.id', 'default'), true);
+		$this->assertEquals(Pluck::one(0, 'User.id', 'default'), 0);
+		$this->assertEquals(Pluck::one(1, 'User.id', 'default'), 1);
+		// pass in an array, and we "try" and return $default
+		$this->assertEquals(Pluck::one(array('a' => 'b'), 'User.id', 'default'), 'default');
+		// pass in null or false, auto return $default
+		$this->assertEquals(Pluck::one(null, 'User.id', 'default'), 'default');
+		$this->assertEquals(Pluck::one(false, 'User.id', 'default'), 'default');
+		$this->assertEquals(Pluck::one('', 'User.id', 'default'), 'default');
+		$this->assertEquals(Pluck::one(array(), 'User.id', 'default'), 'default');
+	}
+
 	public function testOneBasic() {
 		$data = $this->inputUser;
 		$this->assertEquals(Pluck::one($data, 'User.id'), 123);
@@ -350,6 +365,23 @@ class PluckTest extends CakeTestCase {
 		$this->assertEquals(Pluck::one($data, $paths), 123);
 		$paths = array('Bad.path', 'BadPath.2');
 		$this->assertNull(Pluck::one($data, $paths));
+		$data = $this->inputMixed;
+		$this->assertTrue(Pluck::one($data, 'true'));
+		$this->assertTrue(Pluck::one($data, 'true', 'default'));
+		$this->assertEquals(Pluck::one($data, 'zero', 'default'), 0);
+		$this->assertEquals(Pluck::one($data, 'nest.2', 'default'), 'two');
+		// returns the first possible result...
+		//   in this case, the first numeric/string keys' value (inside nest)
+		$this->assertEquals(Pluck::one($data, '{s}', 'default'), 'A');
+		$this->assertEquals(Pluck::one($data, '{n}', 'default'), 'zero');
+		$this->assertEquals(Pluck::one($data, 'nest.{s}', 'default'), 'C');
+		$this->assertEquals(Pluck::one($data, 'nest.{n}', 'default'), 'two');
+		$this->assertEquals(Pluck::one($data, 'nest.{s}.e', 'default'), 'E');
+		$this->assertEquals(Pluck::one($data, 'nest.{s}.d', 'default'), 'D again');
+		/* NOT WORKING $this->assertEquals(Pluck::one($data, 'nest.{s}.0', 'default'), 'zero again'); */
+		// valid paths, but empty results (filtered out)
+		$this->assertEquals(Pluck::one($data, 'false', 'default'), 'default');
+		$this->assertEquals(Pluck::one($data, 'null', 'default'), 'default');
 	}
 
 	public function testOneDefaulting() {

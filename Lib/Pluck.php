@@ -29,6 +29,14 @@
  *       Pluck::one($user, 'User.id') == 123
  *       Pluck::one($user, array('Bad.path', 'User.id', 'User.name')) == 123
  *       Pluck::one($user, 'Bad.path', 'non-user') == 'non-user'
+ *       // data = string/int/etc = passthrough
+ *       Pluck::one('as_string@example.com', 'User.email', 'no email') == 'as_string@example.com'
+ *       Pluck::one(0, 'User.email', 'no email') == '0'
+ *       // data = null or false or empty array or empty string = default
+ *       Pluck::one(array(), 'User.email', 'no email') == 'no email'
+ *       Pluck::one(null, 'User.email', 'no email') == 'no email'
+ *       Pluck::one(false, 'User.email', 'no email') == 'no email'
+ *       Pluck::one('', 'User.email', 'no email') == 'no email'
  *
  * Pluck::oneEmpties()
  *   the same as Pluck::one() but $filterCallback=false, allowing empties
@@ -142,8 +150,17 @@ class Pluck {
 	 * @return mixed
 	 */
 	public static function one($data, $paths = array(), $default = null, $filterCallback = null) {
+		// data = null or false or empty array or empty string = default
+		if ($data === null || $data === false || $data === array() || $data === '') {
+			return $default;
+		}
+		// assume array and attempt firstPath()
 		$output = self::firstPath($data, $paths, $filterCallback);
-		if (is_array($output) && $output !== array()) {
+		if (!is_array($output)) {
+			// output not array?  data prob wasn't, just return it...
+			return $output;
+		}
+		if ($output !== array()) {
 			return current($output);
 		}
 		return $default;
@@ -162,7 +179,10 @@ class Pluck {
 	 */
 	public static function oneEmpties($data, $paths = array(), $default = null) {
 		$output = self::one($data, $paths, $default, false);
-		if (is_array($output) && $output !== array()) {
+		if (!is_array($output)) {
+			return $output;
+		}
+		if ($output !== array()) {
 			return current($output);
 		}
 		return $default;

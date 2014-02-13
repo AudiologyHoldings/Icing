@@ -389,6 +389,7 @@ All of these methods accept a `filterCallback` as the last argument
 * `null`  will run Hash::filter($data) to remove all empties
 * otherwise  will run Hash::filter($data, $filterCallback)
 
+<pre>
 	Pluck::all() --> array()
 		the only real benifit to this is, you can aggregate results from multiple paths
 	Pluck::all($user, 'User.id') == array(123)
@@ -427,6 +428,7 @@ All of these methods accept a `filterCallback` as the last argument
 
 	Pluck::allEmpty()
 		the same as (!empty(Pluck::all()))
+</pre>
 
 If you find yourself doing: `current(Hash::extract($data, 'User.id'))` then
 checkout `Pluck::one($data, 'User.id')`

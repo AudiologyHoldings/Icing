@@ -30,6 +30,7 @@ Portable Package of Utilities for CakePHP
 * AppTestCase
 * AppTestFixture
 * Re
+* Pluck
 * Base62
 * PhpTidy
 * ElasticSearchRequest
@@ -357,11 +358,74 @@ Tests](https://github.com/AudiologyHoldings/Icing/blob/master/Test/Case/Lib/ReTe
 	App::uses('Re', 'Icing.Lib');
 	Re::arrayCSV('a,b,c') ~ Re::stringCSV(array('a', 'b', 'c'));
 	Re::isValid($data); // basically !empty() but allows 0 (by default)
-	Re::pluckValid($data, array('/ModelA/field', '/ModelB/field', '/lastChance'), 'defaultValue'); // gets first valid result for various paths or default value
-	Re::pluck($data, array('/ModelA/field', '/ModelB/field', '/lastChance'), 'defaultValue'); // same as pluckValid() but without the valid check
-	(bool) Re::pluckIsValid($data, array('/ModelA/field', '/ModelB/field', '/lastChance')); // same as pluckValid() and simply returns true/false
 	Re::before($string, ',') == 'all of the string before the first comma';
 	Re::after($string, '.') == 'all of the string after the last period';
+
+**Re::pluck() DEPRECATED**
+
+The `Re::pluck()` Methods were based on Set::extract() and that has been
+deprecated in the CakePHP core. While I initially really liked the XPath
+syntax, there were several case where it caused more problems than it solved
+
+Switch to `Pluck::one()` or one of the `Pluck` methods
+
+	[DEPRECATED] Re::pluckValid($data, array('/ModelA/field', '/ModelB/field', '/lastChance'), 'defaultValue'); // gets first valid result for various paths or default value
+	[DEPRECATED] Re::pluck($data, array('/ModelA/field', '/ModelB/field', '/lastChance'), 'defaultValue'); // same as pluckValid() but without the valid check
+	[DEPRECATED](bool) Re::pluckIsValid($data, array('/ModelA/field', '/ModelB/field', '/lastChance')); // same as pluckValid() and simply returns true/false
+
+## Pluck
+
+A simple wrapper for the `Hash::extract()` method, which encorporates the
+`Hash::filter()` method a bit too.
+
+All of these methods require an array as the first argument
+
+All of these methods accept multiple paths or as single path as the second argument (order matters)
+
+All of these methods accept a `filterCallback` as the last argument
+(`$default` is third for `one()` and `firstPathOrDefault()`)
+
+* `false`  will not run Hash::filter() (**important!**, use this if you need empty/boolean results)
+* `null`  will run Hash::filter($data) to remove all empties
+* otherwise  will run Hash::filter($data, $filterCallback)
+
+    Pluck::all() --> array()
+      the only real benifit to this is, you can aggregate results from multiple paths
+          Pluck::all($user, 'User.id') == array(123)
+          Pluck::all($user, array('Bad.path', 'User.id', 'User.name')) == array(123, 'john doe')
+
+    Pluck::firstPath() --> array()
+      the first result which matches any path (in order) returns
+        note: we do filter data first, so unless you disable filtering, it's the first non-empty result.
+          Pluck::firstPath($user, 'User.id') == array(123)
+          Pluck::firstPath($user, array('Bad.path', 'User.id', 'User.name')) == array(123)
+
+    Pluck::firstPathOrDefault() --> array() or $default
+      the output of Pluck::firstPath()
+        if empty, we instead return a $default argument
+          Pluck::firstPathOrDefault($user, 'Bad.path', 'default text') == 'default text'
+          Pluck::firstPathOrDefault($user, 'Bad.path', array('default', 'array')) == array('default', 'array')
+
+    Pluck::one() --> value {string or whatever} or $default
+      the output of Pluck::firstPath()
+        but we only return the "current" or first value...
+        also, if empty, we instead return a $default argument
+          Pluck::one($user, 'User.id') == 123
+          Pluck::one($user, array('Bad.path', 'User.id', 'User.name')) == 123
+          Pluck::one($user, 'Bad.path', 'non-user') == 'non-user'
+
+    Pluck::oneEmpties()
+      the same as Pluck::one() but $filterCallback=false, allowing empties
+
+    Pluck::allEmpty()
+      the same as (!empty(Pluck::all()))
+
+If you find yourself doing: `current(Hash::extract($data, 'User.id'))` then
+checkout `Pluck::one($data, 'User.id')`
+
+Likewise, use that with multiple paths and return the first valid value we find
+at any of those paths.
+
 
 ## Base62
 

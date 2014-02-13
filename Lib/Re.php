@@ -11,18 +11,13 @@
  * Re::arrayCSV()
  * Re::stringCSV()
  *
- * plucks:
- *   get a single value from a possible set of paths, similar to
- *   Set::extract, except that you can pass in many paths and you get 1 result
- *   (not an array of all matching results)
- *
- * Re::pluck()
- * Re::pluckValid()
- *
  * misc:
  *
  * Re::firstValid()
  * Re::isValid()
+ *
+ * plucks:
+ *   DEPRECATED -- use Lib/Pluck class instead (see readme)
  *
  * -----------------------
  *
@@ -46,7 +41,7 @@ class Re {
 		'disallow' => array(),
 	);
 
-	/** 
+	/**
 	 * The default config.  The test suite will change $config to $defaultConfig before running tests
 	 */
 	static $defaultConfig = array(
@@ -250,6 +245,8 @@ class Re {
 	}
 
 	/**
+	 * DEPRECATED -- use Lib/Pluck class instead (see readme)
+	 *
 	 * returns the value of the $path from the input $data
 	 * this is baically Set::extract() but it returns the first
 	 * value match for a path, instead of an array of matches
@@ -296,6 +293,8 @@ class Re {
 	}
 
 	/**
+	 * DEPRECATED -- use Lib/Pluck class instead (see readme)
+	 *
 	 * returns the value of the $path from the input $data
 	 * but only if it isValid()
 	 * this is baically Set::extract() but it returns the first
@@ -347,6 +346,8 @@ class Re {
 	}
 
 	/**
+	 * DEPRECATED -- use Lib/Pluck class instead (see readme)
+	 *
 	 * this is a shortcut for Re::isValid(Re::pluckValid())
 	 * @param array $data
 	 * @param mixed $paths

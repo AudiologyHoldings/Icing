@@ -143,7 +143,7 @@ class Pluck {
 	 */
 	public static function one($data, $paths = array(), $default = null, $filterCallback = null) {
 		$output = self::firstPath($data, $paths, $filterCallback);
-		if ($output !== array()) {
+		if (is_array($output) && $output !== array()) {
 			return current($output);
 		}
 		return $default;
@@ -162,7 +162,7 @@ class Pluck {
 	 */
 	public static function oneEmpties($data, $paths = array(), $default = null) {
 		$output = self::one($data, $paths, $default, false);
-		if ($output !== array()) {
+		if (is_array($output) && $output !== array()) {
 			return current($output);
 		}
 		return $default;

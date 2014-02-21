@@ -468,4 +468,19 @@ class IcingUtil extends Object {
 	public static function xmlHeader(){
 		return '<?xml version="1.0" encoding="UTF-8" ?>';
 	}
+
+	/**
+	 * @param array
+	 * @return array A list of all keys in that array, recursively found
+	 **/
+	public static function arrayKeysRecursive($array = array()) {
+		$return = array();
+		foreach (array_keys($array) as $key) {
+			$return[] = $key;
+			if (is_array($array[$key])) {
+				$return = array_merge($return, self::arrayKeysRecursive($array[$key]));
+			}
+		}
+		return $return;
+	}
 }

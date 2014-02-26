@@ -148,7 +148,7 @@ class AppTestFixture extends CakeTestFixture {
 			} elseif ($data['type'] == 'datetime') {
 				$dateTimeFields[] = $field;
 			} elseif ($data['type'] == 'date') {
-				$dateTimeFields[] = $field;
+				$dateFields[] = $field;
 			}
 		}
 		foreach (array_keys($this->records) as $key) {

@@ -15,7 +15,7 @@
  *
  * Basic usage:
  *   ./cake Icing.do Model Method
- *   ./cake Icing.do Model Method Param1 Param2
+ *   ./cake Icing.do Model Method arg1 arg2
  *
  * @compatible with CakePHP 2x (should be easy to downgrade to 1.2)
  * @author alan@zeroasterisk.com
@@ -34,7 +34,7 @@ class DoShell extends AppShell {
 	/**
 	 * cake standardized argument parser
 	 * autosets basic help information
-	 * (because of the required Model parameters)
+	 * (because of the required Model arguments)
 	 */
 	public function getOptionParser() {
 		$parser = parent::getOptionParser();
@@ -78,9 +78,15 @@ class DoShell extends AppShell {
 				'short' => 'b',
 				'help' => '(optional) Attach this behavior on setup',
 			),
+			'force' => array(
+				'short' => 'f',
+				'help' => '(optional) Force this attempt, even if the method isn\'t found on the model',
+				'boolean' => true,
+			),
 			'json' => array(
 				'short' => 'j',
-				'help' => '(optional) JSON array of parameters specified rather than a literal string',
+				'help' => '(optional) JSON array of arguments specified rather than a literal string',
+				'boolean' => true,
 			),
 		));
 		return $parser;
@@ -92,14 +98,14 @@ class DoShell extends AppShell {
 	 * @param string $methodName
 	 * @params... string params to pass to methodName
 	 */
-	function main() {
+	public function main() {
 		extract($this->params);
 		$this->out("Icing.do Shell");
 		$this->hr();
 		$modelName = array_shift($this->args);
 		if (empty($modelName)) {
 			$this->help();
-			return $this->error('Error: missing modelName (first parameter)');
+			return $this->error('Error: missing modelName (first argument)');
 		}
 		App::uses('Core', 'ClassRegistry');
 		if (!empty($plugin)) {
@@ -114,24 +120,26 @@ class DoShell extends AppShell {
 		}
 		// set the Model onto this shell, so we can extend help
 		$this->Model = $Model;
-		if (!empty($behavior)) {
-			$Model->Behaviors->attach($behavior);
+		if (!empty($this->params['behavior'])) {
+			$Model->Behaviors->load($this->params['behavior']);
 		}
 		$methodName = array_shift($this->args);
 		if (empty($methodName)) {
 			$this->help();
-			return $this->error("Error: missing methodName (second parameter)");
+			return $this->error("Error: missing methodName (second argument)");
 		}
 		// check to see if we are actually triggering help
 		if ($methodName=='help' || !empty($help)) {
 			$this->help();
 			return true;
 		}
-		if (empty($this->attach) && !method_exists($Model, $methodName)) {
+		// validate method exists
+		if (empty($this->params['force']) && !method_exists($Model, $methodName) && !is_callable(array($Model, $methodName))) {
 			$this->help();
 			return $this->error("Error: methodName [{$methodName}] doesn't exist on Model {$modelName} (internal error 2)");
 		}
-		if (!empty($json)) {
+		// are the arguments JSON?
+		if (!empty($this->params['json'])) {
 			$args = json_decode($this->args[0]);
 		} else {
 			$args = $this->args;
@@ -160,14 +168,18 @@ class DoShell extends AppShell {
 		$this->out();
 		$this->out("  cake Icing.do \$modelName help");
 		$this->out("   ^ Lists available methods on Model");
-		$this->out("  cake Icing.do \$modelName \$methodName [\$parameter] [\$parameter]");
-		$this->out("    ^ executes any method on any model, optionally specifying parameters (as strings)");
-		$this->out("  cake Icing.do '\$pluginName.\$modelName' \$methodName [\$parameter] [\$parameter]");
+		$this->out("  cake Icing.do \$modelName \$methodName [\$argument] [\$argument]");
+		$this->out("    ^ executes any method on any model, optionally specifying arguments (as strings)");
+		$this->out("  cake Icing.do '\$pluginName.\$modelName' \$methodName [\$argument] [\$argument]");
 		$this->out("    ^ a syntax for executing a Plugin.Model's method");
-		$this->out("  cake Icing.do -p \$pluginName \$modelName \$methodName [\$parameter] [\$parameter]");
+		$this->out("  cake Icing.do -p \$pluginName \$modelName \$methodName [\$argument] [\$argument]");
 		$this->out("    ^ alt syntax for executing a Plugin.Model's method");
-		$this->out("  cake Icing.do -b \$behaviorName \$modelName \$methodName [\$parameter] [\$parameter]");
+		$this->out("  cake Icing.do -b \$behaviorName \$modelName \$methodName [\$argument] [\$argument]");
 		$this->out("    ^ attaches any behaviour before executing a method");
+		$this->out("  cake Icing.do -j \$modelName \$methodName '[\$argument, \$argument]'");
+		$this->out("    ^ changes the argument assumptions... the first argument after the method is a JSON string");
+		$this->out("  cake Icing.do -f \$modelName \$methodName [\$argument] [\$argument]");
+		$this->out("    ^ forces the running of a method, even if not found on the model (stored proceedure)");
 		$this->out();
 		// extend help with details on the Model
 		if (!empty($this->Model)) {

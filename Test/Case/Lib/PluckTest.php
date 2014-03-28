@@ -17,6 +17,11 @@ class PluckTest extends CakeTestCase {
 		'true' => true,
 		'false' => false,
 		'zero' => 0,
+		'dotted.a' => 'A with dots',
+		'dotted.b' => array(
+			'B-1',
+			'B-2',
+		),
 		'nest' => array(
 			'c' => 'C',
 			'd' => 'D',
@@ -246,6 +251,9 @@ class PluckTest extends CakeTestCase {
 		//   but since firstPath() merges... it's not :/
 		$this->assertEquals(Pluck::firstPath($data, 'nest'), $data['nest']);
 		$this->assertEquals(Pluck::firstPath($data, 'nest.nest'), $data['nest']['nest']);
+		// dotted paths
+		$this->assertEquals(Pluck::firstPath($data, 'dotted.a'), array('A with dots'));
+		$this->assertEquals(Pluck::firstPath($data, 'dotted.b'), array('B-1', 'B-2'));
 	}
 
 	public function testFirstUser() {
@@ -382,6 +390,11 @@ class PluckTest extends CakeTestCase {
 		// valid paths, but empty results (filtered out)
 		$this->assertEquals(Pluck::one($data, 'false', 'default'), 'default');
 		$this->assertEquals(Pluck::one($data, 'null', 'default'), 'default');
+		// dotted paths
+		$this->assertEquals(Pluck::one($data, 'dotted.a'), 'A with dots');
+		/* NOT WORKING $this->assertEquals(Pluck::one($data, 'dotted.b'), array('B-1', 'B-2'));
+			instead: */
+		$this->assertEquals(Pluck::one($data, 'dotted.b'), 'B-1');
 	}
 
 	public function testOneDefaulting() {

@@ -99,6 +99,10 @@ class Pluck {
 		}
 		$data = self::filter($data, $filterCallback);
 		foreach (Hash::filter($paths) as $path) {
+			// first, look to see if this is just a simple key, to extract
+			if (array_key_exists($path, $data)) {
+				return (is_array($data[$path]) ? $data[$path] : array($data[$path]));
+			}
 			$output = Hash::extract($data, $path);
 			if ($output !== array()) {
 				return $output;

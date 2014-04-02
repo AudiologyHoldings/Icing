@@ -339,6 +339,16 @@ Easy way to load fixture automatically and in groups.  Look at the file for more
 		...
 	}
 
+
+* `assertArrayCompare` - comapre all keys/values in array 1 with all matching keys and their values in array 2.
+* `assertInArray` - shortcut to assertTrue(in_array())
+* `assertIsEmpty` - shortcut to assertTrue(empty())
+* `assertIsNotEmpty` - shortcut to assertTrue(!empty())
+* `assertKeyExists` - shortcut to assertTrue(array_key_exists())
+* `assertTimestamp` - special test for timestamp within tolerance of expected timestamp [now]
+* `assertValidationErrors` - special test for validation errors
+* `loadFixtureGroup` - loads a Config'ed set of standard grouped fixtures
+
 ## AppTestFixture
 
 Fixes missing fields of records with bogus data so you don't have to worry about it. Look at the file for more usage examples

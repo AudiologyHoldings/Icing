@@ -235,7 +235,7 @@ class AppTestCase extends CakeTestCase {
 		}
 		return $config;
 	}
-	
+
 	/**
 	* Loads a fixture group from config and writes it on demand
 	* @usage
@@ -251,7 +251,7 @@ class AppTestCase extends CakeTestCase {
 					//...
 				)
 			);
-			
+
 			In Test
 			public funciton __construct() {
 				$this->loadFixtureGroup('fixture_groups');
@@ -441,6 +441,32 @@ class AppTestCase extends CakeTestCase {
 	// self::assertEquals($expected, $actual, $message);
 	// }
 
+	/**
+	 * Assert that a timetstamp is within a certain tolerance of seconds
+	 *
+	 * @param string $timetstamp (parseable via strtotime)
+	 * @param string $match [now] (parseable via strtotime)
+	 * @param int $toleranceSeconds [5] number of seconds allowed as delta/diff
+	 * @param string $message if fails
+	 */
+	public function assertTimestamp($timestamp, $match = 'now', $toleranceSeconds = 5, $message = null) {
+		if (empty($timestamp)) {
+			$message = 'The timestamp was empty';
+			return parent::assertTrue(false, $message);
+		}
+		$epoch = strtotime($timestamp);
+		$match = strtotime($match);
+		$diff = abs($epoch - $match);
+		if (empty($message)) {
+			$message = sprintf('The timestamp %s was not within %s seconds of %s (%s seconds apart)',
+				$timestamp,
+				$toleranceSeconds,
+				date('Y-m-d H:i:s', $match),
+				$diff
+			);
+		}
+		parent::assertTrue($diff <= $toleranceSeconds, $message);
+	}
 
 	/**
 	 * array `shuffle` while maintaining keys

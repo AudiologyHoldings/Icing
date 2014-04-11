@@ -48,10 +48,50 @@ class ReTest extends CakeTestCase {
 	}
 
 	public function testasArray() {
-
+		// empties
+		$this->assertEquals(Re::asArray(array()), array());
+		$this->assertEquals(Re::asArray(''), array());
+		$this->assertEquals(Re::asArray(null), array());
+		$this->assertEquals(Re::asArray(false), array());
+		$this->assertEquals(Re::asArray(0), array());
+		// arrays = passthrough
+		$input = array(1,2,3 => array(4,5));
+		$this->assertEquals(Re::asArray($input), $input);
+		// serialize
+		$this->assertEquals(Re::asArray(serialize($input)), $input);
+		// JSON
+		$this->assertEquals(Re::asArray(json_encode($input)), $input);
+		// string/int... ends up inside a new array
+		$this->assertEquals(Re::asArray('foobar'), array('foobar'));
+		$this->assertEquals(Re::asArray(555), array(555));
+		// object.. walks the properties
+		//  - Re has none..
+		$obj = new Re();
+		$this->assertEquals(Re::asArray($obj), array());
+		//  - $this has many properties...
+		$this->TestingReAsArray = time();
+		$expect = array(
+			'fixtures',
+			'previousConfig',
+			'fixtureManager',
+			'autoFixtures',
+			'dropTables',
+			'db',
+			'TestingReAsArray',
+		);
+		$result = Re::asArray($this);
+		$this->assertEquals(array_keys($result), $expect);
+		$this->assertEquals($result['TestingReAsArray'], $this->TestingReAsArray);
+		unset($this->TestingReAsArray);
 	}
 
 	public function testasString() {
+		// strings = passthrough
+		$this->assertEquals(Re::asString('foobar'), 'foobar');
+		$this->assertEquals(Re::asString(555), 555);
+		// arrays = JANKY = just gives you a JSON dump (see stringCSV())
+		$input = array(1,2,3 => array(4,5));
+		$this->assertEquals(Re::asString($input), json_encode($input));
 
 	}
 
@@ -92,123 +132,6 @@ class ReTest extends CakeTestCase {
 		$this->assertEquals($result, $expect);
 		$result = Re::cleanArray(Re::cleanArray($result));
 		$this->assertEquals($result, $expect);
-	}
-
-	public function testPluck() {
-		$input = array('User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)));
-		$this->assertEquals(Re::pluck($input, '/User/id'), 1);
-		$this->assertEquals(Re::pluck($input, '/User/name'), 'first Name');
-		$this->assertEquals(Re::pluck($input, '/User/nest/id'), 2);
-		$this->assertEquals(Re::pluck($input, '/User/nest/name'), 'nested');
-		$this->assertEquals(Re::pluck($input, '/User/nest'), $input['User']['nest']);
-		$this->assertEquals(Re::pluck($input, '/User'), $input['User']);
-		$this->assertEquals(Re::pluck($input, '/bad-path'), null);
-		$this->assertEquals(Re::pluck($input, '/bad-path', null), null);
-		$this->assertEquals(Re::pluck($input, '/bad-path', 'default value'), 'default value');
-		$this->assertEquals(Re::pluck($input, '/bad-path', $input), $input);
-		$this->assertEquals(Re::pluck($input, '/nest'), null);
-		$this->assertEquals(Re::pluck($input, '/User/empty'), '');
-		$this->assertEquals(Re::pluck($input, '/User/null'), null);
-		$this->assertEquals(Re::pluck($input, '/User/true'), true);
-		$this->assertEquals(Re::pluck($input, '/User/false'), false);
-		$this->assertEquals(Re::pluck($input, '/User/zero'), 0);
-		$this->assertEquals(Re::pluck($input, '/User/nested/emtpy'), '');
-		// now look for array of paths (first match returns)
-		$this->assertEquals(Re::pluck($input, array('/User/id', '/User/id')), 1);
-		$this->assertEquals(Re::pluck($input, array('/User/id', '/User/name')), 1);
-		$this->assertEquals(Re::pluck($input, array('/User/name', '/User/id')), 'first Name');
-		$this->assertEquals(Re::pluck($input, array('/User/id', '/User/bad-path')), 1);
-		$this->assertEquals(Re::pluck($input, array('/User/bad-path', '/User/id')), 1);
-		$this->assertEquals(Re::pluck($input, array('/bad-path', '/User/id')), 1);
-		$this->assertEquals(Re::pluck($input, array('/User/empty', '/User/id')), '');
-		$this->assertEquals(Re::pluck($input, array('/User/bad-path', '/User/empty')), '');
-	}
-
-	public function testPluckValid() {
-		$input = array(
-			'User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)),
-			'rootlevel' => 'ROOTa',
-			'altroot' => 'ROOTb',
-		);
-		$this->assertEquals(Re::pluckValid($input, '/User/id'), 1);
-		$this->assertEquals(Re::pluckValid($input, '/User/name'), 'first Name');
-		$this->assertEquals(Re::pluckValid($input, '/User/nest/id'), 2);
-		$this->assertEquals(Re::pluckValid($input, '/User/nest/name'), 'nested');
-		$this->assertEquals(Re::pluckValid($input, '/User/nest'), $input['User']['nest']);
-		$this->assertEquals(Re::pluckValid($input, '/User'), $input['User']);
-		$this->assertEquals(Re::pluckValid($input, '/bad-path'), null);
-		$this->assertEquals(Re::pluckValid($input, '/bad-path', null), null);
-		$this->assertEquals(Re::pluckValid($input, '/bad-path', 'default value'), 'default value');
-		$this->assertEquals(Re::pluckValid($input, '/bad-path', $input), $input);
-		$this->assertEquals(Re::pluckValid($input, '/nest'), null);
-		$this->assertEquals(Re::pluckValid($input, '/User/empty'), null); // empty match = default
-		$this->assertEquals(Re::pluckValid($input, '/User/null'), null);
-		$this->assertEquals(Re::pluckValid($input, '/User/true'), true);
-		$this->assertEquals(Re::pluckValid($input, '/User/false'), null); // empty match = default
-		$this->assertEquals(Re::pluckValid($input, '/User/zero'), 0); // 0 isValid = match
-		$this->assertEquals(Re::pluckValid($input, '/User/nested/emtpy'), '');
-		$this->assertEquals(Re::pluckValid($input, '/rootlevel'), 'ROOTa');
-		$this->assertEquals(Re::pluckValid($input, '/altroot'), 'ROOTb');
-		$this->assertEquals(Re::pluckValid($input, 'rootlevel'), 'ROOTa');
-		$this->assertEquals(Re::pluckValid($input, 'altroot'), 'ROOTb');
-		$this->assertEquals(Re::pluckValid($input, 'badroot'), null);
-		// now look for array of paths (first match returns)
-		$this->assertEquals(Re::pluckValid($input, array('/User/id', '/User/id')), 1);
-		$this->assertEquals(Re::pluckValid($input, array('/User/id', '/User/name')), 1);
-		$this->assertEquals(Re::pluckValid($input, array('/User/name', '/User/id')), 'first Name');
-		$this->assertEquals(Re::pluckValid($input, array('/User/id', '/User/bad-path')), 1);
-		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/User/id')), 1);
-		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/User/id')), 1);
-		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/User/false')), null);
-		$this->assertEquals(Re::pluckValid($input, array('/User/false', '/bad-path')), null);
-		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/User/true')), true);
-		$this->assertEquals(Re::pluckValid($input, array('/User/true', '/bad-path')), true);
-		$this->assertEquals(Re::pluckValid($input, array('/User/empty', '/User/id')), 1); // /User/empty not valid, so we jump to second path
-		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/User/empty')), null); // empty match = default
-		$this->assertEquals(Re::pluckValid($input, array('/User/bad-path', '/rootlevel')), 'ROOTa'); // second $path matches root level
-		$this->assertEquals(Re::pluckValid($input, array('/bad-path', '/other-bad', '/crapy-path/again', '/altroot', '/User/id')), 'ROOTb'); // altroot $path matches root level
-	}
-
-	/*
-	 * BROKEN on php 5.3 due to a problem with Set::extract() - which is now deprecated anyway
-	public function testPluckValid_real_world_bug7527() {
-		$input = array('6b85b634f2be6efe21fde096f53c0a51', 'files|a|00400|00499', 'member_id' => '44000', 'filter_type' => 'ImagesSwfs');
-		$this->assertEquals(Re::pluckValid($input, '/member_id'), '44000');
-		$this->assertEquals(Re::pluckValid($input, 'member_id'), '44000');
-		$this->assertEquals(Re::pluckValid($input, '/bad-path'), null);
-		$this->assertEquals(Re::pluckValid($input, '/files'), null);
-		$this->assertEquals(Re::pluckValid($input, '/a'), null);
-	}
-	 */
-
-	public function testPluckIsValid() {
-		$input = array('User' => array('id' => 1, 'name' => 'first Name', 'empty' => '', 'null' => null, 'true' => true, 'false' => false, 'zero' => 0, 'nest' => array('id' => 2, 'name' => 'nested', 'empty' => '',)));
-		$this->assertTrue(Re::pluckIsValid($input, '/User/id'));
-		$this->assertTrue(Re::pluckIsValid($input, '/User/name'));
-		$this->assertTrue(Re::pluckIsValid($input, '/User/nest/id'));
-		$this->assertTrue(Re::pluckIsValid($input, '/User/nest/name'));
-		$this->assertTrue(Re::pluckIsValid($input, '/User/nest'));
-		$this->assertTrue(Re::pluckIsValid($input, '/User'));
-		$this->assertFalse(Re::pluckIsValid($input, '/bad-path'));
-		$this->assertFalse(Re::pluckIsValid($input, '/nest'));
-		$this->assertFalse(Re::pluckIsValid($input, '/User/empty'));
-		$this->assertFalse(Re::pluckIsValid($input, '/User/null'));
-		$this->assertTrue(Re::pluckIsValid($input, '/User/true'));
-		$this->assertFalse(Re::pluckIsValid($input, '/User/false'));
-		$this->assertTrue(Re::pluckIsValid($input, '/User/zero'));
-		$this->assertFalse(Re::pluckIsValid($input, '/User/nested/emtpy'));
-		// now look for array of paths (first match returns)
-		$this->assertTrue(Re::pluckIsValid($input, array('/User/id', '/User/id')));
-		$this->assertTrue(Re::pluckIsValid($input, array('/User/id', '/User/name')));
-		$this->assertTrue(Re::pluckIsValid($input, array('/User/name', '/User/id')));
-		$this->assertTrue(Re::pluckIsValid($input, array('/User/id', '/User/bad-path')));
-		$this->assertTrue(Re::pluckIsValid($input, array('/User/bad-path', '/User/id')));
-		$this->assertTrue(Re::pluckIsValid($input, array('/bad-path', '/User/id')));
-		$this->assertTrue(Re::pluckIsValid($input, array('/User/empty', '/User/id')));
-		$this->assertTrue(Re::pluckIsValid($input, array('/User/empty', '/User/true')));
-		$this->assertTrue(Re::pluckIsValid($input, array('/User/true', '/User/empty')));
-		$this->assertFalse(Re::pluckIsValid($input, array('/User/bad-path', '/User/empty')));
-		$this->assertFalse(Re::pluckIsValid($input, array('/User/bad-path', '/User/alt-bad-path')));
 	}
 
 	public function testBefore() {

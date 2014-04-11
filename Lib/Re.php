@@ -24,6 +24,9 @@
  * @link       https://github.com/AudiologyHoldings/Icing
  * @license    MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
+App::uses('Hash', 'Lib');
+App::uses('Set', 'Lib');
+App::uses('Pluck', 'Icing.Lib'); /* plucks on Re are DEPRECATED */
 class Re {
 
 	/**
@@ -72,6 +75,20 @@ class Re {
 		if (empty($input)) {
 			return array();
 		}
+		if (is_string($input)) {
+			// is serialized?
+			$maybe = @unserialize($input);
+			if (is_array($maybe)) {
+				$input = $maybe;
+			}
+		}
+		if (is_string($input)) {
+			// is json_encode?
+			$maybe = @json_decode($input, true);
+			if (is_array($maybe)) {
+				$input = $maybe;
+			}
+		}
 		if (is_object($input)) {
 			$input = get_object_vars($input);
 		} elseif (!is_array($input)) {
@@ -90,22 +107,27 @@ class Re {
 
 	/**
 	 * Returns a string, derived from whatever the input was.  Optionally trims the return as well.
+	 *  - if the Input was an Array - we return JSON
+	 *  - see Re::stringCSV()
+	 *
 	 * @param mixed $input
 	 * @param bool $trimReturn
 	 * @return array $inputAsArray
 	 */
 	public static function asString($input, $trimReturn=true) {
+		if (is_string($input) || is_int($input)) {
+			return $input;
+		}
 		if (!empty($input) || $input==0){
 			if (is_object($input)) {
 				$input = get_object_vars($input);
 			}
-			while (is_array($input)) {
+			if (is_array($input)) {
 				if ($trimReturn) {
-					$input = array_diff($input, array(null, '', ' '));
+					$input = Hash::filter($input);
 				}
-				$input = current($input);
+				return json_encode($input);
 			}
-			return strval($input);
 		}
 		return '';
 	}
@@ -172,8 +194,8 @@ class Re {
 			$input = Re::asArray($input);
 		}
 		array_walk($input, 'trim');
-		if (class_exists('Set')) {
-			$input = Re::asArray(Set::filter($input));
+		if (class_exists('Hash')) {
+			$input = Re::asArray(Hash::filter($input));
 		}
 		$input = array_diff($input, Re::$empties);
 		return $input;
@@ -197,7 +219,8 @@ class Re {
 		$disallow = array_merge($disallowDefaults, Re::arrayCSV($disallow), Re::$config['disallow']);
 
 		if (is_array($data)) {
-			if (Set::check($data, $disallow)) {
+			$bads = array_intersect($disallow, $data);
+			if (!empty($bads)) {
 				return false;
 			}
 		} elseif (in_array($data, $disallow, true)) {
@@ -248,7 +271,7 @@ class Re {
 	 * DEPRECATED -- use Lib/Pluck class instead (see readme)
 	 *
 	 * returns the value of the $path from the input $data
-	 * this is baically Set::extract() but it returns the first
+	 * this is baically Hash::extract() but it returns the first
 	 * value match for a path, instead of an array of matches
 	 * also, you can pass in an array of possible paths and you get the first
 	 * @param array $data
@@ -259,37 +282,7 @@ class Re {
 	 * @return mixed
 	 */
 	public static function pluck($data, $paths=null, $default=null) {
-		if (empty($data)) {
-			return $default;
-		}
-		if (!is_array($data)) {
-			return $data;
-		}
-		if (is_array($paths)) {
-			foreach ($paths as $path) {
-				$retval = Re::pluck($data, $path, '[[REno-defaultRE]]');
-				if ($retval!=='[[REno-defaultRE]]') {
-					return $retval;
-				}
-			}
-			return $default;
-		}
-		$path = $paths;
-		unset($paths);
-		if (array_key_exists($path, $data)) {
-			return $data[$path];
-		}
-		$retval = Set::extract($data, $path);
-		if (!empty($retval)) {
-			if (count($retval) == 1) {
-				$retval = current($retval);
-			}
-			if (is_array($retval) && strpos($path, key($retval))!==false) {
-				$retval = current($retval);
-			}
-			return $retval;
-		}
-		return $default;
+		return Pluck::oneEmpties($data, $paths, $default);
 	}
 
 	/**
@@ -310,39 +303,7 @@ class Re {
 	 * @return mixed
 	 */
 	public static function pluckValid($data, $paths=null, $default=null) {
-		if (empty($data)) {
-			return $default;
-		}
-		if (!is_array($data)) {
-			return $data;
-		}
-		if (is_array($paths)) {
-			foreach ($paths as $path) {
-				$retval = Re::pluck($data, $path, '[[REno-defaultRE]]');
-				if ($retval!=='[[REno-defaultRE]]' && Re::isValid($retval)) {
-					return $retval;
-				}
-			}
-			return $default;
-		}
-		$path = $paths;
-		unset($paths);
-		if (array_key_exists($path, $data) && Re::isValid($data[$path])) {
-			return $data[$path];
-		}
-		$retval = Set::extract($data, $path);
-		if (!empty($retval)) {
-			if (count($retval) == 1) {
-				$retval = current($retval);
-			}
-			if (is_array($retval) && strpos($path, key($retval))!==false) {
-				$retval = current($retval);
-			}
-			if (Re::isValid($retval)) {
-				return $retval;
-			}
-		}
-		return $default;
+		return Pluck::one($data, $paths, $default);
 	}
 
 	/**
@@ -354,11 +315,8 @@ class Re {
 	 * @return boolean
 	 */
 	public static function pluckIsValid($data, $paths=null) {
-		if (empty($paths)) {
-			return Re::isValid($data);
-		}
-		$retval = Re::pluckValid($data, $paths);
-		return Re::isValid($retval);
+		$value = Pluck::one($data, $paths);
+		return self::isValid($value);
 	}
 
 	/**

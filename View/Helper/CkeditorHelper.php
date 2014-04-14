@@ -3,6 +3,8 @@ class CkeditorHelper extends AppHelper{
 	var $helpers = array('Html');
 	var $loaded = false;
 	var $js_var = 'wtn_editor';
+	//List of instanciated editors.
+	public $editorVars = array();
 	
 	function load(){
 		$this->loaded = true;
@@ -45,6 +47,7 @@ class CkeditorHelper extends AppHelper{
 		$retval .= $this->Html->scriptBlock(
 			"var $varname = CKEDITOR.replace('$id', $options)"
 		);
+		$this->editorVars[$id] = $varname;
 		
 		return $retval; 
 	}

@@ -112,10 +112,9 @@ class FileUploadHelper extends AppHelper{
     $this->settings = array_merge($this->settings, $options);
       
     $img = false;
-    if(is_string($name)){
+    if (is_string($name)) {
       $img = $this->_getImageByName();
-    }
-    elseif(is_int($name)){
+    } elseif (is_int($name)) {
       $img = $this->_getImageById();
     }
     
@@ -247,9 +246,8 @@ class FileUploadHelper extends AppHelper{
   function _resizeImage(){
     $this->newImage = new RResizeImage($this->_getFullPath());
     if($this->newImage->imgWidth > $this->options['width']){
-      $this->newImage->resize_limitwh($this->options['width'], 0, $this->_getResizeNameOrPath($this->_getFullPath()));
-    }
-    else {
+      $result = $this->newImage->resize_limitwh($this->options['width'], 0, $this->_getResizeNameOrPath($this->_getFullPath()));
+    } else {
       //$this->autoResize = false;
     }
   }

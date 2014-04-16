@@ -273,6 +273,9 @@ class FileUploadHelper extends AppHelper{
     $options = $this->options; //copy
     //unset the default options
     unset($options['resizedDir'], $options['uploadDir'], $options['imagePathOnly'], $options['autoResize'], $options['resizeThumbOnly']);
+    if ($options['width'] == 0) {
+    	unset($options['width']);
+    }
     //return the impage path or image html
     if($this->options['imagePathOnly']){
       return $image;

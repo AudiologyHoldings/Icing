@@ -340,7 +340,7 @@ class ElasticSearchRequest extends HttpSocket {
 			}
 			$defaultConfig = Configure::read('ElasticSearchRequest');
 			if (!empty($defaultConfig['default'])) {
-				$config = Hash::merge($defaultConfig['default'], $config);
+				$config = Hash::merge($config, $defaultConfig['default']);
 			}
 			$isUnitTest = Configure::read('inUnitTest');
 			if (!empty($isUnitTest) && !empty($defaultConfig['test'])) {

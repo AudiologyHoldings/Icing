@@ -60,6 +60,7 @@ class IcingUtil extends Object {
 	public static function isHttps(){
 		return (
 			(isset($_SERVER['HTTP_X_REMOTE_PROTOCOL']) && !empty($_SERVER['HTTP_X_REMOTE_PROTOCOL'])) ||
+			(isset($_SERVER['HTTP_X_FORWARD_PROTOCOL']) && $_SERVER['HTTP_X_FORWARD_PROTOCOL'] == 'https') ||
 			(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=='on') ||
 			(isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT']==443));
 	}

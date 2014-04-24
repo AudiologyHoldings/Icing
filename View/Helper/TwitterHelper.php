@@ -118,7 +118,7 @@ class TwitterHelper extends AppHelper {
 	public function init($overwrite = false){
 		$retval = "";
 		if($overwrite || !$this->loaded){
-			$script = "!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');";
+			$script = "!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=\"https://platform.twitter.com/widgets.js\";fjs.parentNode.insertBefore(js,fjs);}}(document,\"script\",\"twitter-wjs\");";
 			$retval = $this->Html->scriptBlock($script);
 			$this->loaded = true;
 		}
@@ -158,8 +158,11 @@ class TwitterHelper extends AppHelper {
 		if(isset($options['large']) && $options['large']){
 			$button_options['data-size'] = 'large';
 		}
-		if(isset($options['count']) && $options['count']){
-			$button_options['data-show-count'] = 'true';
+		if(isset($options['count'])){
+			if ($options['count'] === false) {
+				$button_options['data-count'] = 'none';
+			}
+			$button_options['data-count'] = $options['count'];
 		}
 		if(isset($options['hashtags'])){
 			if(is_array($options['hashtags'])){

@@ -237,7 +237,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 	 */
 	public function idsToNames($Model, $record, $fields = null) {
 		// is this a find all?
-		if (Set::numeric(array_keys($record))) {
+		if (Hash::numeric(array_keys($record))) {
 			foreach (array_keys($record) as $i) {
 				$record[$i] = $this->idsToNames($Model, $record, $fields);
 			}
@@ -314,7 +314,7 @@ class TypeaheadableBehavior extends ModelBehavior {
 			return $data;
 		}
 		// is this a find all?
-		if (Set::numeric(array_keys($data))) {
+		if (Hash::numeric(array_keys($data))) {
 			foreach (array_keys($data) as $i) {
 				$data[$i] = $this->displayFieldToName($Model, $data[$i], $unsetToo, $targetField);
 			}

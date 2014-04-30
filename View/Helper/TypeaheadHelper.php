@@ -138,8 +138,8 @@ Class TypeaheadHelper extends AppHelper {
 		if (is_array($node) && !empty($node[$this->primaryKey])) {
 			// formatted correcty, but lets still extract
 			// because we might be translating displayField
-			$ids = Set::extract($prePopulate, '/' . $this->primaryKey);
-			$names = Set::extract($prePopulate, '/' . $this->displayField);
+			$ids = Hash::extract($prePopulate, '{n}.' . $this->primaryKey);
+			$names = Hash::extract($prePopulate, '{n}.' . $this->displayField);
 		}
 		if (!is_array($node)) {
 			// we assume data is formatted as a simple array(id=>__, name=>__) and we will transform

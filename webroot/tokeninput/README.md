@@ -90,7 +90,7 @@ Finally implement the typeahead controller action.
 		$model = $this->uses[0];
 		$model = explode('.', $model);
 		$model = array_pop($model);
-		$allowedFilters = array_merge( Set::extract($this->presetVars, '/fields'), array('q') );
+		$allowedFilters = array_merge( Hash::extract($this->presetVars, 'fields'), array('q') );
 		$query = array_intersect_key($this->params['url'], array_flip($allowedFilters));
 		$query = array_merge($query, $this->passedArgs);
 		if (empty($query['term']) && !empty($query['q'])) {
@@ -146,7 +146,7 @@ You can do this however you like, but here's how I've chosen to implement it:
 echo $this->Tokeninput->input('AssessmentContent.AssessmentContent', array(
 	'label' => 'AssessmentContent',
 	'source' => $this->Html->url(array('controller' => 'assessment_contents', 'action' => 'tokeninput', 'as.json')),
-	'prePopulate' => Set::combine($this->data, '/AssessmentContent/id', '/AssessmentContent/description'),
+	'prePopulate' => Hash::combine($this->data, '{n}.AssessmentContent.id', '{n}.AssessmentContent.description'),
 ));
 ```
 
@@ -160,7 +160,7 @@ for a very slick interface to add a new HABTM record and subsequently join it.
 echo $this->Tokeninput->input('AssessmentContent.AssessmentContent', array(
 	'label' => 'AssessmentContent',
 	'source' => $this->Html->url(array('controller' => 'assessment_contents', 'action' => 'tokeninput', 'as.json')),
-	'prePopulate' => Set::combine($this->data, '/AssessmentContent/id', '/AssessmentContent/description'),
+	'prePopulate' => Hash::combine($this->data, '{n}.AssessmentContent.id', '{n}.AssessmentContent.description'),
 	'help_block' =>
 	$this->Modal->link('<i class="icon-plus icon-white"></i> Add Assessment Content',
 		array('controller' => 'assessment_contents', 'action' => 'add'),

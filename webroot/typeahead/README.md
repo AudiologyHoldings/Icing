@@ -91,7 +91,7 @@ Finally implement the typeahead controller action.
 		$model = $this->uses[0];
 		$model = explode('.', $model);
 		$model = array_pop($model);
-		$allowedFilters = array_merge( Set::extract($this->presetVars, '/fields'), array('q') );
+		$allowedFilters = array_merge( Hash::extract($this->presetVars, 'fields'), array('q') );
 		$query = array_intersect_key($this->params['url'], array_flip($allowedFilters));
 		$query = array_merge($query, $this->passedArgs);
 		if (empty($query['term']) && !empty($query['q'])) {

@@ -373,7 +373,7 @@ Tests](https://github.com/AudiologyHoldings/Icing/blob/master/Test/Case/Lib/ReTe
 
 **Re::pluck() DEPRECATED**
 
-The `Re::pluck()` Methods were based on Hash::extract() and that has been
+The `Re::pluck()` Methods were based on Set::extract() and that has been
 deprecated in the CakePHP core. While I initially really liked the XPath
 syntax, there were several case where it caused more problems than it solved
 

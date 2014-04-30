@@ -181,7 +181,7 @@ class AppTestCase extends CakeTestCase {
 			// inject Configure::read('fixtureGroups');
 			$configuredFixtureGroupsConfig = Configure::read('fixtureGroupsConfig');
 			if (is_array($configuredFixtureGroupsConfig) && !empty($configuredFixtureGroupsConfig)) {
-				$this->fixtureGroupsConfig = Hash::merge($this->fixtureGroupsConfig, $configuredFixtureGroupsConfig);
+				$this->fixtureGroupsConfig = Set::merge($this->fixtureGroupsConfig, $configuredFixtureGroupsConfig);
 			}
 			// inject the fixtureGroups
 			foreach ($this->fixtureGroups as $group) {
@@ -348,8 +348,8 @@ class AppTestCase extends CakeTestCase {
 	 * @param array $result
 	 */
 	public function assertArrayCompare($expect, $result, $message = 'sorry, the arrays did not match') {
-		$expect = Hash::flatten($expect);
-		$result = Hash::flatten($result);
+		$expect = Set::flatten($expect);
+		$result = Set::flatten($result);
 		$compare = array_intersect_key($result, $expect);
 		asort($expect);
 		asort($compare);

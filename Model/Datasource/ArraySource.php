@@ -148,7 +148,7 @@ class ArraySource extends DataSource {
 						list($field, $sort) = explode(' ', $field, 2);
 					}
 					if ($data) {
-						$data = Hash::sort($data, '{n}.' . $model->alias . '.' . $field, $sort);
+						$data = Set::sort($data, '{n}.' . $model->alias . '.' . $field, $sort);
 					}
 				}
 			}
@@ -356,7 +356,7 @@ class ArraySource extends DataSource {
 						'recursive' => $recursive
 					));
 					$find = array(
-						$association => (array) Hash::extract($find, '{n}.' . $association)
+						$association => (array) Set::extract('{n}.' . $association, $find)
 					);
 				}
 			} elseif ($type === 'hasAndBelongsToMany' && array_key_exists($model->primaryKey, $result[$model->alias])) {
@@ -369,7 +369,7 @@ class ArraySource extends DataSource {
 						$assocData['with'] . '.' . $assocData['foreignKey'] => $result[$model->alias][$model->primaryKey]
 					)
 				));
-				$ids = Hash::extract($ids, '{n}.' . $assocData['with'] . '.' . $assocData['associationForeignKey']);
+				$ids = Set::extract('{n}.' . $assocData['with'] . '.' . $assocData['associationForeignKey'], $ids);
 				$find = $model->{$association}->find('all', array(
 					'conditions' => array_merge((array)$assocData['conditions'], array($association . '.' . $linkModel->primaryKey => $ids)),
 					'fields' => $assocData['fields'],
@@ -377,7 +377,7 @@ class ArraySource extends DataSource {
 					'recursive' => $recursive
 				));
 				$find = array(
-					$association => Hash::extract($find, '{n}.' . $association)
+					$association => Set::extract('{n}.' . $association, $find)
 				);
 			}
 			if (empty($find)) {
@@ -403,7 +403,7 @@ class ArraySource extends DataSource {
 		if ($clear) {
 			$this->_requestsLog = array();
 		}
-		return array('log' => $log, 'count' => count($log), 'time' => array_sum((array) Hash::extract($log, '{n}.took')));
+		return array('log' => $log, 'count' => count($log), 'time' => array_sum((array) Set::extract('{n}.took', $log)));
 	}
 
 /**

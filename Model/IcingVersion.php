@@ -121,7 +121,7 @@ class IcingVersion extends IcingAppModel {
 			return Hash::diff($one, $two);
 		}
 		if (class_exists('Set')) {
-			return Hash::diff($one, $two);
+			return Set::diff($one, $two);
 		}
 		return array_diff($one, $two);
 	}

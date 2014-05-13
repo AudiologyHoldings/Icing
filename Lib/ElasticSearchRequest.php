@@ -131,9 +131,6 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['uri']['path'] .= '/'; // automatic ID creation
 		$request['body'] = $this->asJson($data);
 		$data = $this->request($request);
-		if (empty($data['ok'])) {
-			throw new ElasticSearchRequestException('create record exception - response not ok: ' . json_encode($data));
-		}
 		if (!empty($data['_id'])) {
 			return $data['_id'];
 		}
@@ -147,9 +144,6 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['uri']['path'] .= "/{$id}"; // explicit id = overwrite
 		$request['body'] = $this->asJson($data);
 		$data = $this->request($request);
-		if (empty($data['ok'])) {
-			throw new ElasticSearchRequestException('update record exception - response not ok: ' . json_encode($data));
-		}
 		if (!empty($data['_id'])) {
 			return $data['_id'];
 		}
@@ -340,7 +334,7 @@ class ElasticSearchRequest extends HttpSocket {
 			}
 			$defaultConfig = Configure::read('ElasticSearchRequest');
 			if (!empty($defaultConfig['default'])) {
-				$config = Hash::merge($defaultConfig['default'], $config);
+				$config = Hash::merge($config, $defaultConfig['default']);
 			}
 			$isUnitTest = Configure::read('inUnitTest');
 			if (!empty($isUnitTest) && !empty($defaultConfig['test'])) {

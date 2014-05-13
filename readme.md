@@ -103,7 +103,7 @@ Build share, mention and hashtag buttons
 	<?php echo $this->Twitter->share('Tweet', array('action' => 'view'), array(
 		'text' => 'Take the hearing health pledge!',
 		'large' => true,
-		'count' => false,
+		'count' => 'none', //'horizontal' (default), 'vertical'
 		'hashtags' => array('HashTag1','HashTagh2','HashTag3'),
 		'related' => array('HearingAids','WebTechNick')
 	)); ?>

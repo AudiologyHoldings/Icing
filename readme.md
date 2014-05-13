@@ -27,18 +27,19 @@ Portable Package of Utilities for CakePHP
 
 # Libraries
 
-* DatabaseCacheEngine
-* AppTestCase
-* AppTestFixture
+* DatabaseCacheEngine - Cache Engine in your DB
+* AppTestCase - extend CakeTestCase
+* AppTestFixture - extend AppTestFixture (flexible records)
 * Re
 * Pluck
 * Base62
 * PhpTidy
-* ElasticSearchRequest
+* ElasticSearchRequest - interact with ElasticSearch (HttpSocket)
 
 # Shells
 
-* FixtureUpdateShell
+* DoShell - run any `Model.method` from the command line
+* FixtureUpdateShell - update all your fixture's fields without touching records
 
 ## CsvHelper
 
@@ -544,6 +545,32 @@ Usage:
     $bool = $this->ESR->deleteRecord($elastic_search_id);
     $bool = $this->ESR->deleteIndex('mynewindex');
     $mapping = $this->ESR->getMapping();
+
+## DoShell
+
+This is a wildly useful Shell.
+Basically it's just *easy access* to all your Model's methods.
+
+    ./cake Icing.do <ModelName> <method> [param1, param2, ...]
+
+So if your `Post` Model had a method called `cleanupAllPostsForUser($userId)` you could run that from CLI with:
+
+    ./cake Icing.do Post cleanupAllPostsForUser 99
+
+This has the ability to access all direct and inherited methods, so you can use `delete` to delete the record `123`, or `deleteAll` for all records:
+
+    ./cake Icing.do Post delete 123
+    ./cake Icing.do Post deleteAll 1
+
+Or you can even attempt to save records passing in JSON data:
+
+   ./cake Icing.do -j Post save '{title:"my cli post",body:"this is from the CLI"}'
+
+* You can pass in a `-p <PluginName>` param to load a model from a Plugin.
+* You can pass in a `-b <BehaviorName>` param to automatically load a Behavior on the Model, if not already loaded
+* You can pass in a `-f` param to force the method, even if the Model doesn't see it as a method/function... (useful for stored procedures)
+* You can pass in a `-j` param telling the method that your arguments are in JSON format
+
 
 ## FixtureUpdateShell
 

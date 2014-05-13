@@ -15,6 +15,7 @@ Portable Package of Utilities for CakePHP
 * VersionableBehavior
 * SummableBehavior
 * ThrottleableBehavior
+* EmailableBehavior
 
 # Models
 

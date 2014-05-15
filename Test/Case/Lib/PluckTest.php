@@ -164,6 +164,7 @@ class PluckTest extends CakeTestCase {
 		// multiple paths, mixed-results (merged)
 		$paths = array('User.id', 'Post.{n}.id', 'Post.{n}.Author.id');
 		$expect = array(123, 1, 2, 3, 9999, 8888);
+		$this->assertEquals(Pluck::all($data, $paths), $expect);
 		$paths = array('Post.{n}.id', 'User.id', 'Post.{n}.Author.id');
 		$expect = array(1, 2, 3, 123, 9999, 8888);
 		$this->assertEquals(Pluck::all($data, $paths), $expect);

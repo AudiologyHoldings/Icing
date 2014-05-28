@@ -165,14 +165,14 @@ class IcingVersion extends IcingAppModel {
 				$count = $this->find('count', compact('conditions'));
 			}
 		}
-		// check if this is a minor_revision based on the data.json=last.json
+		// check if this is a minor_revision based on the data.json=newest.json
 		$newest = $this->find('first', array(
 			'fields' => array('id', 'json'),
 			'conditions' => $conditions,
 			'order' => array("{$this->alias}.created DESC")
 		));
 		if (!empty($newest[$this->alias]['id'])) {
-			$data['is_minor_version'] = ($newest[$this->alias]['json'] != $data['json']);
+			$data['is_minor_version'] = ($newest[$this->alias]['json'] == $data['json']);
 		}
 
 		// check if this we should change prior version to minor_revision based on minor_timeframe from settings

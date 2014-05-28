@@ -156,17 +156,27 @@ class IcingVersion extends IcingAppModel {
 		if (!empty($settings['versions']) && is_numeric($settings['versions']) && $settings['versions'] > 0) {
 			$count = $this->find('count', compact('conditions'));
 			while ($count >= $settings['versions']) {
-				$last = $this->find('first', array(
+				$oldest = $this->find('first', array(
 					'fields' => array('id'),
 					'conditions' => $conditions,
 					'order' => array("{$this->alias}.created ASC")
 				));
-				$this->delete($last[$this->alias]['id']);
+				$this->delete($oldest[$this->alias]['id']);
 				$count = $this->find('count', compact('conditions'));
 			}
 		}
-		// check if this is a minor_revision based on minor_timeframe from settings
-		if (!empty($settings['minor_timeframe'])) {
+		// check if this is a minor_revision based on the data.json=last.json
+		$newest = $this->find('first', array(
+			'fields' => array('id', 'json'),
+			'conditions' => $conditions,
+			'order' => array("{$this->alias}.created DESC")
+		));
+		if (!empty($newest[$this->alias]['id'])) {
+			$data['is_minor_version'] = ($newest[$this->alias]['json'] != $data['json']);
+		}
+
+		// check if this we should change prior version to minor_revision based on minor_timeframe from settings
+		if (empty($data['is_minor_version']) && !empty($settings['minor_timeframe'])) {
 			// find all the records which "should be minor"
 			$versions_within_timeframe = $this->find('list', array(
 				'conditions' => array_merge($conditions, array(

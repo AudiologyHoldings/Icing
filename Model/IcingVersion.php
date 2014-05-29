@@ -9,18 +9,18 @@ App::uses('Hash', 'Utility');
  */
 class IcingVersion extends IcingAppModel {
 
-/**
- * Display field
- *
- * @var string
- */
+	/**
+	 * Display field
+	 *
+	 * @var string
+	 */
 	public $displayField = 'model';
 
-/**
- * Validation rules
- *
- * @var array
- */
+	/**
+	 * Validation rules
+	 *
+	 * @var array
+	 */
 	public $validate = array(
 		'model_id' => array(
 			'numeric' => array(
@@ -46,11 +46,15 @@ class IcingVersion extends IcingAppModel {
 	);
 
 	/**
-	* Finds the version back from curent based by number count
-	* @param int version number 1-infinity
-	*/
-	public function findVersionBack($model = null, $number = 0, $model_id = 0){
-		if($number && $model_id && $model){
+	 * Finds the version back from curent based by number count
+	 *
+	 * @param string $model alias
+	 * @param int $number version number 1-infinity
+	 * @param string $model_id model primaryKey
+	 * @return array findFirst
+	 */
+	public function findVersionBack($model = null, $number = 0, $model_id = 0) {
+		if ($number && $model_id && $model) {
 			return $this->find('first', array(
 				'conditions' => array(
 					'model' => $model,
@@ -64,19 +68,25 @@ class IcingVersion extends IcingAppModel {
 	}
 
 	/**
-	* Run a diff between two different versions
-	* if the second version is null use the curent
-	*/
-	public function diff($model, $one_version_id, $second_version_id = null, $settings = array()){
+	 * Run a diff between two different versions
+	 * if the second version is null use the curent
+	 *
+	 * @param string $model alias
+	 * @param string $one_version_id primaryKey
+	 * @param string $second_version_id primaryKey
+	 * @param array $settings
+	 * @return mixed $diff or false
+	 */
+	public function diff($model, $one_version_id, $second_version_id = null, $settings = array()) {
 		$settings = array_merge(array(
 			'contain' => array()
 		), (array)$settings);
 		$one = $this->findById($one_version_id);
-		if(empty($one)){
+		if (empty($one)) {
 			return false;
 		}
 		$one_data = json_decode($one['IcingVersion']['json'], true);
-		if($second_version_id){
+		if ($second_version_id) {
 			$two = $this->findById($second_version_id);
 			$two_data = json_decode($two['IcingVersion']['json'], true);
 		} else {
@@ -97,7 +107,7 @@ class IcingVersion extends IcingAppModel {
 			$model => $this->_diff($two_data[$model], $one_data[$model])
 		);
 		// expand diff across all nested model's data, individually
-		foreach($settings['contain'] as $model_key){
+		foreach($settings['contain'] as $model_key) {
 			if (!array_key_exists($model_key, $two_data)) {
 				$retval[$model_key] = array();
 			} elseif (!array_key_exists($model_key, $one_data)) {
@@ -131,7 +141,7 @@ class IcingVersion extends IcingAppModel {
 	 *
 	 * @return boolean
 	 */
-	public function cleanUpMinorVersions(){
+	public function cleanUpMinorVersions() {
 		return $this->deleteAll(array(
 			'IcingVersion.is_minor_version' => true
 		));
@@ -175,6 +185,12 @@ class IcingVersion extends IcingAppModel {
 			$data['is_minor_version'] = ($newest[$this->alias]['json'] == $data['json']);
 		}
 
+		// check if this we should skip this version
+		if (!empty($data['is_minor_version']) && !empty($settings['ignore_identical'])) {
+			// skipping - the records are identical
+			return true;
+		}
+
 		// check if this we should change prior version to minor_revision based on minor_timeframe from settings
 		if (empty($data['is_minor_version']) && !empty($settings['minor_timeframe'])) {
 			// find all the records which "should be minor"
@@ -184,7 +200,7 @@ class IcingVersion extends IcingAppModel {
 					'IcingVersion.is_minor_version' => false,
 				)),
 			));
-			foreach ($versions_within_timeframe as $version_id => $model){
+			foreach ($versions_within_timeframe as $version_id => $model) {
 				$this->id = $version_id;
 				$this->saveField('is_minor_version', true);
 			}

@@ -40,22 +40,33 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['uri']['path'] .= '/_search';
 		// setup the query
 		$data = $this->parseQuery($query);
-		// handle extra details
+
+		// extra details - special cases
 		if (!empty($request['limit'])) {
+			// 'limit' as a synonym for size
 			$data['size'] = intval($request['limit']);
 		}
-		if (!empty($request['size'])) {
-			$data['size'] = intval($request['size']);
-		}
 		if (!empty($request['page']) && !empty($request['size'])) {
+			// auto set 'from' if 'page' and 'size' are set
 			$data['from'] = (intval($request['page']) - 1) * intval($request['size']);
 		}
-		if (!empty($request['from'])) {
-			$data['from'] = intval($request['from']);
-		}
 		if (!empty($request['fields'])) {
+			// 'fields' may be an array
 			$data['fields'] = (is_array($request['fields']) ? array_values($request['fields']) : explode(',', $request['fields']));
 		}
+
+		// extra details - simple field copies. 'from' and 'size' limited to integer, 'min_score' simple copy
+		foreach (['from', 'size'] as $int_field) {
+			if (!empty($request[$int_field])) {
+				$data[$int_field] = intval($request[$int_field]);
+			}
+		}
+		foreach (['min_score'] as $field) {
+			if (!empty($request[$field])) {
+				$data[$field] = $request[$field];
+			}
+		}
+
 		// set the $data
 		$request['body'] = $this->asJson($data);
 		$data = $this->request($request);

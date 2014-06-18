@@ -57,6 +57,12 @@ class MysqlExtended extends Mysql {
 		if (($col === 'tinyint' && $limit == 1) || $col === 'boolean') {
 			return 'boolean';
 		}
+		if (strpos($col, 'bigint') !== false || $col === 'bigint') {
+			return 'biginteger';
+		}
+		if (($col === 'integer' && $limit >= 12)) {
+			return 'biginteger';
+		}
 		if (($col === 'integer' && $limit <= 3) || $col === 'tinyint') {
 			return 'tinyint';
 		}

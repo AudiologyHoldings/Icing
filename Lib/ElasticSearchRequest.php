@@ -69,14 +69,23 @@ class ElasticSearchRequest extends HttpSocket {
 
 		foreach (array_keys($data['hits']['hits']) as $i) {
 			$hit = $data['hits']['hits'][$i];
+			// Always include ID
 			$output[$i] = array(
 				'_id' => $hit['_id'],
 			);
-			if (!empty($hit['_source'])) {
-				$output[$i] += $hit['_source'];
+
+			// Single fields we add if existing
+			foreach (['_score'] as $single_field) {
+				if (!empty($hit[$single_field])) {
+					$output[$i][$single_field] = $hit[$single_field];
+				}
 			}
-			if (!empty($hit['fields'])) {
-				$output[$i] += $hit['fields'];
+
+			// These are arrays that are merged in if they exist
+			foreach (['_source', 'fields'] as $array_field) {
+				if (!empty($hit[$array_field])) {
+					$output[$i] += $hit[$array_field];
+				}
 			}
 			unset($data['hits']['hits'][$i]);
 		}

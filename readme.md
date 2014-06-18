@@ -24,6 +24,7 @@ Portable Package of Utilities for CakePHP
 # Datasources
 
 * ArraySource
+* Database/MysqlExtended
 
 # Libraries
 
@@ -189,6 +190,30 @@ Save without creating a version
 ## ArraySource
 
 Allows for an array dataset instead of sql database but can be assosiated with other model data with normal cakephp assosiations and finds.
+
+## Database/MysqlExtended
+
+Do you ever get frustrated by not having more column types?
+Miss `smallint` perhaps, or want a `longblob`?
+
+Change your `app/Config/database.php`
+
+	from:
+	'datasource' => 'Database/Mysql',
+	to:
+	'datasource' => 'Icing.Database/MysqlExtended',
+
+You now have available the following "new" types:
+
+* 'binary' => array('name' => 'binary'),
+* 'blob' => array('name' => 'blob'),
+* 'longblob' => array('name' => 'longblob'),
+* 'tinyint' => array('name' => 'tinyint', 'limit' => '3', 'formatter' => 'intval'),
+* 'smallint' => array('name' => 'smallint', 'limit' => '6', 'formatter' => 'intval'),
+* 'mediumint' => array('name' => 'mediumint', 'limit' => '8', 'formatter' => 'intval'),
+
+These will work with all existing CakePHP schema tools, including [CakeDC Migrations](https://github.com/CakeDC/migrations),
+both for generating new schema files and for creating/altering your database from schema files.
 
 ### Example
 

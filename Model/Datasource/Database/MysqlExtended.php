@@ -79,7 +79,7 @@ class MysqlExtended extends Mysql {
 			return 'binary';
 		}
 		if ($col === 'longblob') {
-			return 'blongblob';
+			return 'longblob';
 		}
 		if (strpos($col, 'blob') !== false) {
 			return 'blob';

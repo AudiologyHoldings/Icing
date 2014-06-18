@@ -66,7 +66,9 @@ class ElasticSearchRequest extends HttpSocket {
 			return array();
 		}
 		$output = array();
-		foreach ($data['hits']['hits'] as $i => $hit) {
+
+		foreach (array_keys($data['hits']['hits']) as $i) {
+			$hit = $data['hits']['hits'][$i];
 			$output[$i] = array(
 				'_id' => $hit['_id'],
 			);
@@ -76,7 +78,9 @@ class ElasticSearchRequest extends HttpSocket {
 			if (!empty($hit['fields'])) {
 				$output[$i] += $hit['fields'];
 			}
+			unset($data['hits']['hits'][$i]);
 		}
+
 		return $output;
 	}
 

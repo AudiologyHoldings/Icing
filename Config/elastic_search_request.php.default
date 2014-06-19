@@ -10,6 +10,8 @@
 $config = array(
 	'ElasticSearchRequest' => array(
 		'default' => array(
+			// should we log every request?
+			'log' => false,
 			// the name of the index you want to use
 			'index' => 'myindex',
 			// the details of the HttpSocket request we will make
@@ -34,6 +36,7 @@ $config = array(
 		),
 		// test values only apply when in unit tests
 		'test' => array(
+			'log' => false,
 			'index' => 'myindex_test',
 		),
 	),

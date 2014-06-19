@@ -28,8 +28,8 @@ class ElasticSearchRequest extends HttpSocket {
 	 * construct the object
 	 */
 	public function __construct($config = array()) {
+		$this->_config['log'] = (Configure::read('debug') > 0);
 		$this->config($config);
-		$this->_config['log'] = true;
 	}
 
 	/**

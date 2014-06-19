@@ -28,7 +28,6 @@ class ElasticSearchRequest extends HttpSocket {
 	 * construct the object
 	 */
 	public function __construct($config = array()) {
-		$this->_config['log'] = (Configure::read('debug') > 0);
 		$this->config($config);
 	}
 
@@ -377,6 +376,10 @@ class ElasticSearchRequest extends HttpSocket {
 			$isUnitTest = Configure::read('inUnitTest');
 			if (!empty($isUnitTest) && !empty($defaultConfig['test'])) {
 				$config = Hash::merge($config, $defaultConfig['test']);
+			}
+			// defaulting logging to be false in prod, true in dev
+			if (!array_key_exists('log', $config)) {
+				$config['log'] = (Configure::read('debug') > 0);
 			}
 		}
 		if (!empty($config)) {

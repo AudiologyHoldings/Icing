@@ -67,7 +67,7 @@ class ShareHelper extends AppHelper {
 				'target' => '_blank',
 				'escape' => false,
 				),
-			'url' => Router::url($this->here, true),
+			'url' => $this->defaultUrl(),
 			'text' => '',
 		), (array) $options);
 
@@ -95,7 +95,7 @@ class ShareHelper extends AppHelper {
 				'target' => '_blank',
 				'escape' => false,
 				),
-			'url' => Router::url($this->here, true),
+			'url' => $this->defaultUrl(),
 		), (array) $options);
 
 		$data = array(
@@ -121,7 +121,7 @@ class ShareHelper extends AppHelper {
 				'target' => '_blank',
 				'escape' => false,
 			),
-			'url' => Router::url($this->here, true),
+			'url' => $this->defaultUrl(),
 		), (array) $options);
 
 		$data = array(
@@ -149,7 +149,7 @@ class ShareHelper extends AppHelper {
 				'target' => '_blank',
 				'escape' => false,
 			),
-			'url' => Router::url($this->here, true),
+			'url' => $this->defaultUrl(),
 			'image' => '',
 			'text' => '',
 		), (array) $options);
@@ -174,6 +174,14 @@ class ShareHelper extends AppHelper {
 			return null;
 		}
 		return $this->baseUrls[$service] . http_build_query($data);
+	}
+	
+	/**
+	* Get the current url
+	* @return string full path url of current page.
+	*/
+	protected function defaultUrl() {
+		return $this->Html->url($this->request->here, true);
 	}
 
 	/**

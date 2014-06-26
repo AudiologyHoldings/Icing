@@ -27,6 +27,7 @@ Portable Package of Utilities for CakePHP
 # Datasources
 
 * ArraySource
+* Database/MysqlExtended
 
 # Libraries
 
@@ -160,35 +161,49 @@ Use the built in helper to resize and cache on the fly
 
 ## VersionableBehavior
 
-Attach to any model to creating versions of current state on save for later restoration
-Uses the AuthComponent to log the user doing the save by default.
+Attach to any model to creating versions of current state, on save, for later restoration.
+
+* When you save
+* We do a find (optionally with contain) to find this record's old/current (before save) data
+* We save the old data to a record in `IcingVersion`
+** This means the `IcingVersion.json` is the old data, whatever existed before the save that created this version record
+
+NOTE: `IcingVersionable` uses the `AuthComponent` to log the user doing the save, if it can.
 
 ### Install
-Run the schema into your database to create icing_versions table
+
+Run the schema into your database to create `icing_versions` table
 
 	cake schema create -p Icing
 
-You should see icing_versions in your database
+You should see `icing_versions` in your database
 
 ### Usage Examples
+
 Bind to model you want to auto-version on save
-Default Settings:
+
+Default Settings
 
 	array(
-		'contain' => array(), //only version the current model
-		'versions' => false, //unlimited versions
-		'minor_timeframe' => false, //do not mark for minor versions
-		'bind' => false, //don't bind versions on find
+		'contain'          => array(), //only version the current model
+		'versions'         => false,   //unlimited versions
+		'minor_timeframe'  => false,   //do not mark for minor versions
+		'bind'             => false,   //don't bind versions on find
+		'check_identical'  => false,   //does not check if this version is identical to last version
+		'ignore_identical' => false,   //ignored since not checking
 	)
 
-	public $actsAs = array('Icing.Versionable'); //default settings
+	public $actsAs = array('Icing.Versionable'); // uses default settings
 
 	public $actsAs = array('Icing.Versionable' => array(
-		'contain'         => array('Hour'), //contains for relative model to be included in the version.
-		'versions'        => '5',           //how many version to save at any given time (false by default unlimited)
-		'minor_timeframe' => '10',          //Mark all previous versions if saved within 10 seconds of current version.  Easily cleanup minor_versions
-		'bind'            => true,          //attach IcingVersion as HasMany relationship for you on find and if contained
+		'contain'          => array('Hour'), //contains for relative model to be included in the version.
+		'versions'         => '5',           //how many version to save at any given time (false by default unlimited)
+		'minor_timeframe'  => '10',          //Mark all previous versions if saved within 10 seconds of current version.  Easily cleanup minor_versions
+		'bind'             => true,         //if true, attach IcingVersionable as HasMany relationship for you onFind and if contained
+		'check_identical'  => true,         //if true, version is marked as minor, if the data is identical to last version
+		'ignore_identical' => true,         //if true, no version is created, if the data is identical to last version
 	));
+
 
 Restoring from a version
 
@@ -205,6 +220,12 @@ Diffs from a version
 Save without creating a version
 
 	$this->Model->save($data, array('create_version' => false));
+
+**Pro Tip**
+
+IcingVersionable stores the "Old Data" *(the "current value" of this record before it was saved)* on your model, as `$this->Model->oldData`.
+
+So if you want to do anything fancy in `afterSave()` with the old record (like compare to see what was changed) it is already there for you... *(we had to find it to save the version anyway, might as well give you easy access to it)*
 
 # DataSources
 
@@ -250,6 +271,30 @@ Allows for an array dataset instead of sql database but can be assosiated with o
 	));
 	$this->ConsumerGuide->field('path', array('ConsumerGuide.type' => 'loved_one'));
 	$this->ConsumerGuide->findByType('loved_one');
+
+## Database/MysqlExtended
+
+Do you ever get frustrated by not having more column types?
+Miss `smallint` perhaps, or want a `longblob`?
+
+Change your `app/Config/database.php`
+
+	from:
+	'datasource' => 'Database/Mysql',
+	to:
+	'datasource' => 'Icing.Database/MysqlExtended',
+
+You now have available the following "new" types:
+
+* 'binary' => array('name' => 'binary'),
+* 'blob' => array('name' => 'blob'),
+* 'longblob' => array('name' => 'longblob'),
+* 'tinyint' => array('name' => 'tinyint', 'limit' => '3', 'formatter' => 'intval'),
+* 'smallint' => array('name' => 'smallint', 'limit' => '6', 'formatter' => 'intval'),
+* 'mediumint' => array('name' => 'mediumint', 'limit' => '8', 'formatter' => 'intval'),
+
+These will work with all existing CakePHP schema tools, including [CakeDC Migrations](https://github.com/CakeDC/migrations),
+both for generating new schema files and for creating/altering your database from schema files.
 
 ## ThrottleableBehavior
 

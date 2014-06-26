@@ -19,11 +19,16 @@ class ElasticSearchRequest extends HttpSocket {
 	public $_config = array();
 
 	/**
+	 * Placeholder for the last request, response, error
+	 *   useful to see what just happened
+	 */
+	public $last = array();
+
+	/**
 	 * construct the object
 	 */
 	public function __construct($config = array()) {
 		$this->config($config);
-		$this->_config['log'] = true;
 	}
 
 	/**
@@ -289,18 +294,26 @@ class ElasticSearchRequest extends HttpSocket {
 	 *     - heeader
 	 */
 	public function request($request = array()) {
-		// do the request
 		$this->log(compact('request'));
+		$this->last['request'] = $request;
+		$this->last['response'] = null;
+		$this->last['error'] = null;
+		// do the request
 		try {
 			$response = parent::request($request);
 		} catch (SocketException $e) {
+			$this->last['error'] = $e->getMessage();
 			$this->log(array('SocketException' => $e->getMessage()));
 			return false;
 		}
+		// log the response
 		$this->log(compact('response'));
+		$this->last['response'] = $response;
+		// handle the response
 		try {
 			return $this->handleResponse($response, $request);
 		} catch(ElasticSearchRequestException $e) {
+			$this->last['error'] = $e->getMessage();
 			$error = $e->getMessage();
 			if (strpos($error, '[retry]') !== false) {
 				return $this->request($request);
@@ -363,6 +376,10 @@ class ElasticSearchRequest extends HttpSocket {
 			$isUnitTest = Configure::read('inUnitTest');
 			if (!empty($isUnitTest) && !empty($defaultConfig['test'])) {
 				$config = Hash::merge($config, $defaultConfig['test']);
+			}
+			// defaulting logging to be false in prod, true in dev
+			if (!array_key_exists('log', $config)) {
+				$config['log'] = (Configure::read('debug') > 0);
 			}
 		}
 		if (!empty($config)) {

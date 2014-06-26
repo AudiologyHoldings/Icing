@@ -161,6 +161,7 @@ class IcingVersion extends IcingAppModel {
 			'model' => $data['model'],
 			'model_id' => $data['model_id'],
 		);
+
 		// check if we should prune off old records for this model+id
 		//   (limited by settings - versions count)
 		if (!empty($settings['versions']) && is_numeric($settings['versions']) && $settings['versions'] > 0) {
@@ -175,14 +176,18 @@ class IcingVersion extends IcingAppModel {
 				$count = $this->find('count', compact('conditions'));
 			}
 		}
+
 		// check if this is a minor_revision based on the data.json=newest.json
-		$newest = $this->find('first', array(
-			'fields' => array('id', 'json'),
-			'conditions' => $conditions,
-			'order' => array("{$this->alias}.created DESC")
-		));
-		if (!empty($newest[$this->alias]['id'])) {
-			$data['is_minor_version'] = ($newest[$this->alias]['json'] == $data['json']);
+		//   if this version of the data is an exact match to the most recently saved version
+		if (!empty($settings['check_identical'])) {
+			$newest = $this->find('first', array(
+				'fields' => array('id', 'json'),
+				'conditions' => $conditions,
+				'order' => array("{$this->alias}.created" => "DESC")
+			));
+			if (!empty($newest[$this->alias]['id'])) {
+				$data['is_minor_version'] = ($newest[$this->alias]['json'] == $data['json']);
+			}
 		}
 
 		// check if this we should skip this version
@@ -205,8 +210,12 @@ class IcingVersion extends IcingAppModel {
 				$this->saveField('is_minor_version', true);
 			}
 		}
+
 		// finally, save this record
-		$this->create();
-		return $this->save($data);
+		$this->create(false);
+		if (!$this->save($data)) {
+			return false;
+		}
+		return true;
 	}
 }

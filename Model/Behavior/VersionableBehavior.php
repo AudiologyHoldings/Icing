@@ -19,11 +19,12 @@
   *
   * @example
   	public $actsAs = array('Icing.Versionable' => array(
-  		'contain'         => array('Hour'), //contains for relative model to be saved.
-  		'versions'        => '5',           //how many version to save at any given time (false by default unlimited)
-  		'minor_timeframe' => '10',          //Mark as minor_version if saved within 10 seconds of last version.  Easily cleanup minor_versions
-  		'bind'            => true,          //attach Versionable as HasMany relationship for you onFind and if contained
-  		'ignore_identical' => false,         //if true, no version is created if the data is identical
+  		'contain'          => array('Hour'), //contains for relative model to be saved.
+  		'versions'         => '5',           //how many version to save at any given time (false by default unlimited)
+  		'minor_timeframe'  => '10',          //Mark as minor_version if saved within 10 seconds of last version.  Easily cleanup minor_versions
+  		'bind'             => false,         //if true, attach IcingVersionable as HasMany relationship for you onFind and if contained
+  		'check_identical'  => false,         //if true, version is marked as minor, if the data is identical to last version
+  		'ignore_identical' => false,         //if true, no version is created, if the data is identical to last version
   	));
 
   	Restore from Previous Version
@@ -67,6 +68,7 @@ class VersionableBehavior extends ModelBehavior {
 			'versions' => false,
 			'minor_timeframe' => false,
 			'bind' => false,
+			'check_identical' => false,
 			'ignore_identical' => false,
 		), (array)$settings);
 		if (!$Model->Behaviors->attached('Containable')) {
@@ -212,6 +214,8 @@ class VersionableBehavior extends ModelBehavior {
 	 */
 	private function saveVersion(Model $Model, $delete = false) {
 		$model_id = 0;
+		$Model->oldData = null;
+		$Model->versionData = null;
 		if ($Model->id) {
 			$model_id = $Model->id;
 		}
@@ -225,32 +229,40 @@ class VersionableBehavior extends ModelBehavior {
 			return false;
 		}
 
-		//cache the data in case the model has some afterfind stuff that sets data
+		// cache the data in case the model has some afterfind stuff that sets data
 		$data = $Model->data;
-		$current_data = $Model->find('first', array(
+
+		// find the oldData / the Current Data before this version is saved
+		$Model->oldData = $Model->find('first', array(
 			'conditions' => array("{$Model->alias}.{$Model->primaryKey}" => $model_id),
 			'contain' => $this->settings[$Model->alias]['contain']
 		));
-		$version_data = array(
+		$Model->versionData = array(
 			'user_id' => 0,
 			'model_id' => $model_id,
 			'model' => $Model->alias,
-			'json' => json_encode($current_data),
+			'json' => json_encode($Model->oldData),
 			'is_delete' => $delete,
 			'url' => IcingUtil::getUrl(),
 			'ip' => IcingUtil::getIP(),
 			'is_minor_version' => false,
 		);
-		unset($current_data);
 
 		if (method_exists($Model, 'getUserId')) {
-			$version_data['user_id'] = $Model->getUserId();
+			$Model->versionData['user_id'] = $Model->getUserId();
 		} elseif (class_exists('AuthComponent') && class_exists('CakeSession') && CakeSession::started()) {
-			$version_data['user_id'] = AuthComponent::user('id');
+			$Model->versionData['user_id'] = AuthComponent::user('id');
 		}
 
+		// save the version record
+		$output = $this->IcingVersion->saveVersion($Model->versionData, $this->settings[$Model->alias]);
+		$Model->versionData['id'] = $this->IcingVersion->id;
+
+		// reset data to the initial value (just in case it got reset somehow)
 		$Model->data = $data;
-		return $this->IcingVersion->saveVersion($version_data, $this->settings[$Model->alias]);
+
+		// return the boolean output (saved version)
+		return $output;
 	}
 
 	/**

@@ -8,6 +8,9 @@ Portable Package of Utilities for CakePHP
 * CkeditorHelper
 * GoogleCalendarHelper
 * TwitterHelper
+* ShareHelper
+* TokeninputHelper
+* TypeheadHelper
 
 # Behaviors
 
@@ -41,6 +44,25 @@ Portable Package of Utilities for CakePHP
 
 * DoShell - run any `Model.method` from the command line
 * FixtureUpdateShell - update all your fixture's fields without touching records
+
+## ShareHelper
+
+Easily add share buttons without any javascript API added to your page, supprts googleplus, twitter, facebook, and pinterest. Options are `url`, `text` and `image` (not supported with every social network)
+
+	public $helpers = array('Icing.Share');
+	
+	//some view.ctp
+	echo $this->Share->twitter(array(
+		'text' => 'Check this out'
+	));
+	echo $this->Share->facebook();
+	echo $this->Share->pinterest(array(
+		'image' => 'http://example.com/image.png',
+		'text' => 'Awesome image'
+	));
+	echo $this->Share->googleplus(array(
+		'url' => 'http://example.com'
+	));
 
 ## CsvHelper
 

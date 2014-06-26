@@ -28,6 +28,11 @@ class ShareHelper extends AppHelper {
 		'facebook' => 'https://www.facebook.com/sharer/sharer.php?',
 		'pinterest' => 'https://pinterest.com/pin/create/button/?',
 	);
+	
+	/**
+	* Default setting for javascript popup share window
+	*/
+	public $popup = true;
 
 	/**
 	* Default settings

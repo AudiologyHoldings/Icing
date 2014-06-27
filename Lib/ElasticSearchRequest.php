@@ -326,7 +326,13 @@ class ElasticSearchRequest extends HttpSocket {
 	}
 
 	/**
-	 *
+	 * Parse the response,
+	 *  - look for errors
+	 *  - handle "known" errors
+	 *    - in case of "missing index", create index and re-request
+	 *  - handle unkown errors (exception)
+	 *  - handle empty response (exception)
+	 *  - return response
 	 *
 	 * @param object $response
 	 * @param array $request
@@ -361,9 +367,17 @@ class ElasticSearchRequest extends HttpSocket {
 
 	/**
 	 * Get and set config
+	 *  - also sets up the default config if not yet done
+	 *
+	 * Look at the Config/elastic_search_request.php file for an example of all
+	 * the config options.
+	 *
+	 * @param array $config {optional} pass in any config you want to set, ongoing
+	 * @return array $config
 	 */
 	public function config($config = array()) {
-		if (empty($this->_config)) {
+		if (empty($this->_config['defaultLoaded'])) {
+			$this->_config['defaultLoaded'] = true;
 			try {
 				Configure::load('elastic_search_request');
 			} catch (ConfigureException $e) {

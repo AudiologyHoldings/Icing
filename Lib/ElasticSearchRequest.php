@@ -115,7 +115,23 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['method'] = 'PUT';
 		$request['body'] = '';
 		$data = $this->request($request);
-		return (!empty($data['ok']));
+
+		if ($data['_code'] != 200) {
+			return false;
+		}
+
+		// Wait for index to become ready. Wait a max of 60 seconds, retry every 50ms
+		$startTime = time();
+		while ($startTime + 60 > time()) {
+			$stages = $this->getRecoveryStagesForIndex($index);
+			if (!in_array('START', $stages)) {
+				return true;
+			}
+			usleep(50000); //50ms
+		}
+
+		$this->log("CreateIndex:  Index [$index] took longer than 60 seconds to become ready.");
+		return true;
 	}
 
 	public function deleteIndex($index, $request = array()) {
@@ -124,7 +140,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['method'] = 'DELETE';
 		$request['body'] = '';
 		$data = $this->request($request);
-		return (!empty($data['ok']));
+		return $data['_code'] == 200;
 	}
 
 	public function createMapping($mapping, $request = array()) {
@@ -140,7 +156,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['uri']['path'] .= '/_mapping';
 		$request['body'] = $this->asJson($mapping);
 		$data = $this->request($request);
-		return (!empty($data['ok']));
+		return $data['_code'] == 200;
 	}
 
 	public function getMapping($request = array()) {
@@ -186,7 +202,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['uri']['path'] .= "/{$id}"; // explicit id = overwrite
 		$request['body'] = '';
 		$data = $this->request($request);
-		return (!empty($data['ok']));
+		return $data['_code'] == 200;
 	}
 
 	public function getRecord($id, $request = array()) {
@@ -200,6 +216,54 @@ class ElasticSearchRequest extends HttpSocket {
 		$data['_id'] = $raw['_id'];
 		return $data;
 	}
+
+	/**
+	 *  Calls the "indicies recovery" API and returns raw data.
+	 *  http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-recovery.html
+	 *
+	 *  Note:  Tells this->request to skip handleRequest().  That way, we may use this function
+	 *  inside handleRequest() without causing infinite loops.
+	 *
+	 *  @param string Index name
+	 *  @param array Request override [not used]
+	 *  @return array Raw json recovery data
+	 **/
+	public function getRecoveryRawForIndex($index, $request = []) {
+		$request['uri']['path'] = "/{$index}/_recovery";
+		$request = $this->buildRequest($request);
+		$request['method'] = 'GET';
+		$request['body'] = '';
+		$data = $this->request($request, ['skipHandleResponse' => true]);
+		#pr($data);
+		return $data;
+	}
+
+	/**
+	 *  Calls the "indicies recovery" API and returns an array of stages, 1 for each shard.
+	 *  http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-recovery.html
+	 *
+	 *  Note:  Tells this->request to skip handleRequest().  That way, we may use this function
+	 *  inside handleRequest() without causing infinite loops.
+	 *
+	 *  Example of return value when everything is good
+	 *  ["DONE", "DONE", "DONE", "DONE"]
+	 *
+	 *  Example of return value when shards are rebuilding
+	 *  ["DONE", "DONE", "TRANSLOG", "DONE", "TRANSLOG"]
+     *
+	 *  Example of return value when a newly created index is not ready to be used
+	 *  ["START", "START", "START", "START", "START"]
+	 *
+	 *  @param string Index name
+	 *  @param array Request override [not used]
+	 *  @return array Stages
+	 **/
+	public function getRecoveryStagesForIndex($index, $request = []) {
+		$recovery = $this->getRecoveryRawForIndex($index, $request);
+		$stages = Hash::extract($recovery, "$index.shards.{n}.stage");
+		return $stages;
+	}
+
 
 	public function exists($id, $request = array()) {
 		$request = $this->buildRequest($request);
@@ -283,7 +347,7 @@ class ElasticSearchRequest extends HttpSocket {
 	/**
 	 * Swiss army knife
 	 *
-	 * @param array $options
+	 * @param array $request
 	 *   - method [GET, POST, PUT, DELETE]
 	 *   - index (optional override)
 	 *   - table (optional - appends to index to create path)
@@ -291,13 +355,19 @@ class ElasticSearchRequest extends HttpSocket {
 	 *     - uri
 	 *       - path (we auto-set this to: /$index/$table/$action)
 	 *       - query (eg: ?pretty-true)
-	 *     - heeader
+	 *     - header
+	 * @param array $options
+	 *     - Set key 'skipHandleResponse' to get raw data returned
+	 *       instead of calling handleResponse().
+	 *
+	 * @return array $response friendly (usually via handleResponse())
 	 */
-	public function request($request = array()) {
+	public function request($request = array(), $options = []) {
 		$this->log(compact('request'));
 		$this->last['request'] = $request;
 		$this->last['response'] = null;
 		$this->last['error'] = null;
+
 		// do the request
 		try {
 			$response = parent::request($request);
@@ -306,9 +376,16 @@ class ElasticSearchRequest extends HttpSocket {
 			$this->log(array('SocketException' => $e->getMessage()));
 			return false;
 		}
+
 		// log the response
 		$this->log(compact('response'));
 		$this->last['response'] = $response;
+
+		// if asked to skipHandleResponse, return it
+		if (!empty($options['skipHandleResponse'])) {
+			return array_merge( (array) @json_decode($response->body, true), ['_code' => $response->code]);
+		}
+
 		// handle the response
 		try {
 			return $this->handleResponse($response, $request);
@@ -341,20 +418,19 @@ class ElasticSearchRequest extends HttpSocket {
 	 */
 	public function handleResponse($response, $request = null) {
 		// validate the request
-		$data = @json_decode($response->body, true);
+		$data = array_merge( (array) @json_decode($response->body, true), ['_code' => $response->code]);
 		if (!empty($data['error']) || !in_array($response->code, array(200, 201))) {
 			$error = (empty($data['error']) ? 'unknown error' : $data['error']);
 			if (preg_match('#IndexMissingException\[\[(.+)\] missing\]#', $error, $match)) {
 				$index = $match[1];
 				if ($this->createIndex($index, $request) && empty($this->retrying)) {
-					sleep(1);
 					$this->retrying = true; // retry -- watch out for a loop
 					$this->log('retrying');
 					return $this->request($request);
 				}
 			}
 			if (strpos($error, 'IndexAlreadyExistsException') !== false) {
-				return array('ok' => true, 'message' => 'IndexAlreadyExistsException');
+				return ['message' => 'IndexAlreadyExistsException', '_code' => 200];
 			}
 			$error = str_replace(array('[', ']'), ' ', $error);
 			throw new ElasticSearchRequestException("Request failed, got a response code of {$response->code} {$error}");

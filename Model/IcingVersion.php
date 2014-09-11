@@ -179,7 +179,7 @@ class IcingVersion extends IcingAppModel {
 
 		// check if this is a minor_revision based on the data.json=newest.json
 		//   if this version of the data is an exact match to the most recently saved version
-		if (!empty($settings['check_identical'])) {
+		if (!empty($settings['check_identical']) || !empty($settings['ignore_identical'])) {
 			$newest = $this->find('first', array(
 				'fields' => array('id', 'json'),
 				'conditions' => $conditions,

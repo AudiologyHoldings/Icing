@@ -50,7 +50,7 @@ Portable Package of Utilities for CakePHP
 Easily add share buttons without any javascript API added to your page, supprts googleplus, twitter, facebook, and pinterest. Options are `url`, `text` and `image` (not supported with every social network)
 
 	public $helpers = array('Icing.Share');
-	
+
 	//some view.ctp
 	echo $this->Share->twitter(array(
 		'text' => 'Check this out'
@@ -191,6 +191,7 @@ Default Settings
 		'bind'             => false,   //don't bind versions on find
 		'check_identical'  => false,   //does not check if this version is identical to last version
 		'ignore_identical' => false,   //ignored since not checking
+		'useDbConfig'      => null,    //if not set, we use the 'default' inherited from AppModel
 	)
 
 	public $actsAs = array('Icing.Versionable'); // uses default settings
@@ -202,6 +203,7 @@ Default Settings
 		'bind'             => true,         //if true, attach IcingVersionable as HasMany relationship for you onFind and if contained
 		'check_identical'  => true,         //if true, version is marked as minor, if the data is identical to last version
 		'ignore_identical' => true,         //if true, no version is created, if the data is identical to last version
+		'useDbConfig'      => 'archive'     //optionally you can setup a custom config in app/Config/database.php (ignored when testing)
 	));
 
 
@@ -223,7 +225,7 @@ Save without creating a version
 
 **Pro Tip**
 
-IcingVersionable stores the "Old Data" *(the "current value" of this record before it was saved)* on your model, as `$this->Model->oldData`.
+IcingVersionable stores the "Old Data" *(the "current value" of this record before it was saved)* on your model, as `$this->Model->getDataBeforeSave()`.
 
 So if you want to do anything fancy in `afterSave()` with the old record (like compare to see what was changed) it is already there for you... *(we had to find it to save the version anyway, might as well give you easy access to it)*
 

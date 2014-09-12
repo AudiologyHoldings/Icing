@@ -66,13 +66,13 @@ class ElasticSearchRequest extends HttpSocket {
 
 		// copy from $request to $requestBody - simple field copies.
 		// 'from' and 'size' limited to integer
-		foreach (['from', 'size'] as $intField) {
+		foreach (array('from', 'size') as $intField) {
 			if (!empty($request[$intField])) {
 				$requestBody[$intField] = intval($request[$intField]);
 			}
 		}
 		// 'min_score' simple copy
-		foreach (['min_score'] as $field) {
+		foreach (array('min_score') as $field) {
 			if (!empty($request[$field])) {
 				$requestBody[$field] = $request[$field];
 			}
@@ -111,14 +111,14 @@ class ElasticSearchRequest extends HttpSocket {
 			);
 
 			// Single fields we add if existing
-			foreach (['_score'] as $singleField) {
+			foreach (array('_score') as $singleField) {
 				if (!empty($hit[$singleField])) {
 					$output[$i][$singleField] = $hit[$singleField];
 				}
 			}
 
 			// These are arrays that are merged in if they exist
-			foreach (['_source', 'fields'] as $array_field) {
+			foreach (array('_source', 'fields') as $array_field) {
 				if (!empty($hit[$array_field])) {
 					$output[$i] += $hit[$array_field];
 				}
@@ -248,12 +248,12 @@ class ElasticSearchRequest extends HttpSocket {
 	 *  @param array Request override [not used]
 	 *  @return array Raw json recovery data
 	 **/
-	public function getRecoveryRawForIndex($index, $request = []) {
+	public function getRecoveryRawForIndex($index, $request = array()) {
 		$request['uri']['path'] = "/{$index}/_recovery";
 		$request = $this->addConfigToRequest($request);
 		$request['method'] = 'GET';
 		$request['body'] = '';
-		$data = $this->request($request, ['skipHandleResponse' => true]);
+		$data = $this->request($request, array('skipHandleResponse' => true));
 		#pr($data);
 		return $data;
 	}
@@ -278,7 +278,7 @@ class ElasticSearchRequest extends HttpSocket {
 	 *  @param array Request override [not used]
 	 *  @return array Stages
 	 **/
-	public function getRecoveryStagesForIndex($index, $request = []) {
+	public function getRecoveryStagesForIndex($index, $request = array()) {
 		$recovery = $this->getRecoveryRawForIndex($index, $request);
 		$stages = Hash::extract($recovery, "$index.shards.{n}.stage");
 		return $stages;
@@ -396,7 +396,7 @@ class ElasticSearchRequest extends HttpSocket {
 	 *
 	 * @return array $response friendly (usually via handleResponse())
 	 */
-	public function request($request = array(), $options = []) {
+	public function request($request = array(), $options = array()) {
 		$this->log(compact('request'));
 		$this->last['request'] = $request;
 		$this->last['response'] = null;
@@ -417,7 +417,7 @@ class ElasticSearchRequest extends HttpSocket {
 
 		// if asked to skipHandleResponse, return it
 		if (!empty($options['skipHandleResponse'])) {
-			return array_merge( (array) @json_decode($response->body, true), ['_code' => $response->code]);
+			return array_merge( (array) @json_decode($response->body, true), array('_code' => $response->code));
 		}
 
 		// handle the response
@@ -452,7 +452,7 @@ class ElasticSearchRequest extends HttpSocket {
 	 */
 	public function handleResponse($response, $request = null) {
 		// validate the request
-		$data = array_merge( (array) @json_decode($response->body, true), ['_code' => $response->code]);
+		$data = array_merge( (array) @json_decode($response->body, true), array('_code' => $response->code));
 		if (!empty($data['error']) || !in_array($response->code, array(200, 201))) {
 			$error = (empty($data['error']) ? 'unknown error' : $data['error']);
 			if (preg_match('#IndexMissingException\[\[(.+)\] missing\]#', $error, $match)) {
@@ -464,7 +464,7 @@ class ElasticSearchRequest extends HttpSocket {
 				}
 			}
 			if (strpos($error, 'IndexAlreadyExistsException') !== false) {
-				return ['message' => 'IndexAlreadyExistsException', '_code' => 200];
+				return array('message' => 'IndexAlreadyExistsException', '_code' => 200);
 			}
 			$error = str_replace(array('[', ']'), ' ', $error);
 			throw new ElasticSearchRequestException("Request failed, got a response code of {$response->code} {$error}");

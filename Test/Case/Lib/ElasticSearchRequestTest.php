@@ -63,7 +63,8 @@ class ElasticSearchRequestTest extends CakeTestCase {
 	 * @return void
 	 */
 	public function setUp() {
-		$this->ESR = new ElasticSearchRequest();
+		$this->ESR = new ElasticSearchRequest(array('index' => $this->index));
+		$this->ESR->createIndex($this->index);
 		parent::setUp();
 	}
 

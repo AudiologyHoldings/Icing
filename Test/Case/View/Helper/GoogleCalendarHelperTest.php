@@ -58,7 +58,7 @@ class GoogleCalendarHelperTest extends CakeTestCase {
 		// different resuts depending on your timezone
 		// 'http://www.google.com/calendar/event?action=TEMPLATE&dates=20130816T020000Z%2F20130816T030000Z&text=Test+Event&details=Details+of+Event&location=Albuquerque%2C+NM&trp=true&add=nurvzy@gmail.com&add=nick.baker@audiologyholdings.com'
 		$patternUrl = 'http\://www\.google\.com/calendar/event\?' .
-			'action=TEMPLATE\&dates\=20130816T[0-9]+Z\%2F20130816T[0-9]+Z\&' .
+			'action=TEMPLATE\&dates\=2013081(6|5)T[0-9]+Z\%2F2013081(6|5)T[0-9]+Z\&' .
 			'text=Test\+Event&details\=Details\+of\+Event\&location\=Albuquerque\%2C\+NM\&' .
 			'trp\=true\&add\=nurvzy\@gmail\.com\&add\=nick\.baker\@audiologyholdings\.com';
 		$this->assertPattern(

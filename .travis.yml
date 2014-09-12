@@ -13,6 +13,7 @@ env:
 install:
   - git clone git://github.com/cakephp/cakephp ../cakephp && cd ../cakephp && git checkout $CAKE_VERSION
   - cp -R ../Icing plugins/Icing
+  - cp ../Icing/Config/elastic_search_request.php.default app/Config/elastic_search_request.php
   - chmod -R 777 ../cakephp/app/tmp
   - sh -c "composer global require 'phpunit/phpunit=3.7.33'"
   - sh -c "ln -s ~/.composer/vendor/phpunit/phpunit/PHPUnit ../cakephp/vendors/PHPUnit"

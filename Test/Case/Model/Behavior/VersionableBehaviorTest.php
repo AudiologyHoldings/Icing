@@ -11,17 +11,21 @@ App::uses('VersionableBehavior', 'Icing.Model/Behavior');
 /**
  * Post model (fixtures from CakePHP Core)
  */
-class Post extends CakeTestModel {
+class VersionablePost extends CakeTestModel {
+	public $alias = 'Post';
+	public $useTable = 'posts';
 	public $actsAs = array('Icing.Versionable');
 }
 
 /**
  * User model (fixtures from CakePHP Core)
  */
-class User extends CakeTestModel {
+class VersionableUser extends CakeTestModel {
+	public $alias = 'User';
+	public $useTable = 'users';
 	public $actsAs = array('Icing.Versionable');
 	public $hasMany = array(
-		'Post' => array(
+		'VersionablePost' => array(
 			'foreignKey' => 'author_id',
 		)
 	);
@@ -32,7 +36,9 @@ class User extends CakeTestModel {
  * User model (fixtures from CakePHP Core)
  * Not initialized so we tweak config before initialize of the Behavior
  */
-class UserDefault1 extends CakeTestModel {
+class VersionableUserDefaults extends CakeTestModel {
+	public $alias = 'User';
+	public $useTable = 'users';
 	public $actsAs = array('Icing.Versionable');
 }
 
@@ -40,8 +46,9 @@ class UserDefault1 extends CakeTestModel {
  * User model (fixtures from CakePHP Core)
  * settings changed to simulate Versionable config setup
  */
-class UserCustomized extends CakeTestModel {
-	public $useTabel = false;
+class VersionableUserCustomized extends CakeTestModel {
+	public $alias = 'User';
+	public $useTable = 'users';
 	public $actsAs = array('Icing.Versionable' => array(
 		'contain'          => array('Post'),
 		'versions'         => 2,
@@ -78,8 +85,8 @@ class VersionableBehaviorTest extends CakeTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->Versionable = new VersionableBehavior();
-		$this->Post = ClassRegistry::init('Post');
-		$this->User = ClassRegistry::init('User');
+		$this->Post = ClassRegistry::init('VersionablePost');
+		$this->User = ClassRegistry::init('VersionableUser');
 		$this->IcingVersion = ClassRegistry::init('IcingVersion');
 	}
 
@@ -182,10 +189,10 @@ class VersionableBehaviorTest extends CakeTestCase {
 			'extrasetting'     => __function__
 		));
 
-		$this->UserDefault1 = ClassRegistry::init('UserDefault1');
+		$this->VersionableUserDefaults = ClassRegistry::init('VersionableUserDefaults');
 
 		$this->assertEqual(
-			$this->UserDefault1->getIcingVersionSettings(),
+			$this->VersionableUserDefaults->getIcingVersionSettings(),
 			array(
 				'contain'          => array('Foobar'),
 				'versions'         => 9,
@@ -198,21 +205,16 @@ class VersionableBehaviorTest extends CakeTestCase {
 			)
 		);
 
-		unset($this->UserDefault1);
+		unset($this->VersionableUserDefaults);
 
 		Configure::write('Icing.Versionable.config', $orig);
 	}
 
 	public function testSettingsUseDbConfig() {
-		$this->UserCustomized = ClassRegistry::init('UserCustomized');
-
-		$this->assertEqual(
-			$this->UserCustomized->wouldHaveSetIcingVersion,
-			'test_archive'
-		);
+		$this->VersionableUserCustomized = ClassRegistry::init('VersionableUserCustomized');
 
 		// makes it to the settings
-		$settings = $this->UserCustomized->getIcingVersionSettings();
+		$settings = $this->VersionableUserCustomized->getIcingVersionSettings();
 		$this->assertEqual(
 			$settings['useDbConfig'],
 			'test_archive'
@@ -220,7 +222,7 @@ class VersionableBehaviorTest extends CakeTestCase {
 
 		// doesn't overwrite "test" since we are testing
 		$this->assertEqual(
-			$this->UserCustomized->getIcingVersion()->useDbConfig,
+			$this->VersionableUserCustomized->getIcingVersion()->useDbConfig,
 			'test'
 		);
 
@@ -242,8 +244,8 @@ class VersionableBehaviorTest extends CakeTestCase {
 		$Fixture->init($db);
 		$Fixture->drop($db);
 		$Fixture->create($db);
-		$this->UserCustomized = ClassRegistry::init('UserCustomized');
-		$this->UserCustomized->save(['user' => __function__]);
+		$this->VersionableUserCustomized = ClassRegistry::init('VersionableUserCustomized');
+		$this->VersionableUserCustomized->save(['user' => __function__]);
 		 */
 	}
 
@@ -257,12 +259,12 @@ class VersionableBehaviorTest extends CakeTestCase {
 
 		// change contain = array(Post)
 		$this->User->Behaviors->load('Icing.Versionable', array(
-			'contain' => array('Post'),
+			'contain' => array('VersionablePost'),
 		));
 		$settings = $this->User->getIcingVersionSettings();
 		$this->assertEqual(
 			$settings['contain'],
-			array('Post')
+			array('VersionablePost')
 		);
 
 		$this->IcingVersion->deleteAll('1=1');
@@ -281,14 +283,14 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 		// saved data doesn't have Post
 		$this->assertFalse(
-			array_key_exists('Post', $data)
+			array_key_exists('VersionablePost', $data)
 		);
 		// versionData does have Post as a full contain call
 		$this->assertTrue(
-			array_key_exists('Post', $versionData)
+			array_key_exists('VersionablePost', $versionData)
 		);
 		$this->assertEqual(
-			count($versionData['Post']),
+			count($versionData['VersionablePost']),
 			2
 		);
 	}

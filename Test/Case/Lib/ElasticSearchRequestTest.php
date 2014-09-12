@@ -169,20 +169,14 @@ class ElasticSearchRequestTest extends CakeTestCase {
 		}
 	}
 
-	public function testParseQuery() {
-		$query1 = array('query' => array('query_string' => array('query' => 'a')));
-		$expect = $query1;
-		$this->assertEqual($this->ESR->parseQuery($query1), $expect);
-		$this->assertEqual($this->ESR->parseQuery(json_encode($query1)), $expect);
-		$this->assertEqual($this->ESR->parseQuery($query1['query']), $expect);
-
-	}
+	/*
 	public function testAutoQuery() {
-		$this->assertEqual($this->ESR->autoQuery('a'), array('query' => array('query_string' => array('query' => 'a', 'lenient' => true))));
-		$this->assertEqual($this->ESR->autoQuery('abc def'), array('query' => array('query_string' => array('query' => 'abc def', 'lenient' => true))));
-		$this->assertEqual($this->ESR->autoQuery('"abc def"'), array('query' => array('query_string' => array('query' => '"abc def"', 'lenient' => true))));
-		$this->assertEqual($this->ESR->autoQuery('~abc'), array('query' => array('fuzzy_like_this' => array('like_text' => 'abc'))));
+		$this->assertEqual($this->ESR->buildQueryFromStringOrArray('a'), array('query' => array('query_string' => array('query' => 'a', 'lenient' => true))));
+		$this->assertEqual($this->ESR->buildQueryFromStringOrArray('abc def'), array('query' => array('query_string' => array('query' => 'abc def', 'lenient' => true))));
+		$this->assertEqual($this->ESR->buildQueryFromStringOrArray('"abc def"'), array('query' => array('query_string' => array('query' => '"abc def"', 'lenient' => true))));
+		$this->assertEqual($this->ESR->buildQueryFromStringOrArray('~abc'), array('query' => array('fuzzy_like_this' => array('like_text' => 'abc'))));
 	}
+	 */
 
 
 	public function testMapping() {
@@ -196,7 +190,10 @@ class ElasticSearchRequestTest extends CakeTestCase {
 		foreach (array_keys($expect['test_table']['properties']) as $field) {
 			$expect['test_table']['properties'][$field]['store'] = true;
 		}
-		$this->assertEqual($this->ESR->getMapping($request), $expect);
+		$result = $this->ESR->getMapping($request);
+		$node = array_shift($result);
+		$mappings = array_shift($node);
+		$this->assertEqual($mappings, $expect);
 	}
 
 	public function testCreateRecord() {

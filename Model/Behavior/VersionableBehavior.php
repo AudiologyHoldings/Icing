@@ -95,7 +95,7 @@ class VersionableBehavior extends ModelBehavior {
 			// if we are testing... we want to "stay in test"
 			//   done this way to aid in unit testing
 			if ($this->IcingVersion->useDbConfig == 'test') {
-				$Model->wouldHaveSetIcingVersion = $settings['useDbConfig'];
+				// $Model->wouldHaveSetIcingVersion = $settings['useDbConfig'];
 				$settings['useDbConfig'] = 'test';
 			}
 			$this->IcingVersion->setDataSource($settings['useDbConfig']);

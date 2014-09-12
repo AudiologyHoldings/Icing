@@ -26,13 +26,17 @@ App::uses('SummableBehavior', 'Icing.Model/Behavior');
 /**
  * Stat model
  */
-class Stat extends CakeTestModel {
+class SummableStat extends CakeTestModel {
+	public $alias = 'Stat';
+	public $useTable = 'stats';
 	public $actsAs = array('Summable');
 }
 /**
  * Stat model
  */
-class User extends CakeTestModel {
+class SummableUser extends CakeTestModel {
+	public $alias = 'User';
+	public $useTable = 'users';
 	public $actsAs = array('Summable');
 }
 /**
@@ -47,7 +51,8 @@ class SummableBehaviorTest extends CakeTestCase {
 	 * @var array
 	 */
 	public $fixtures = array(
-		'plugin.icing.stat', 'core.user'
+		'plugin.icing.stat',
+		'core.user'
 	);
 
 	/**
@@ -58,8 +63,8 @@ class SummableBehaviorTest extends CakeTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->Summable = new SummableBehavior();
-		$this->Stat = ClassRegistry::init('Stat');
-		$this->User = ClassRegistry::init('User');
+		$this->Stat = ClassRegistry::init('SummableStat');
+		$this->User = ClassRegistry::init('SummableUser');
 	}
 
 	/**

@@ -495,25 +495,24 @@ class ElasticSearchRequest extends HttpSocket {
 			}
 			$defaultConfig = Configure::read('ElasticSearchRequest');
 			if (!empty($defaultConfig['default'])) {
-				$config = Hash::merge($config, $defaultConfig['default']);
+				$this->_config = Hash::merge($this->_config, $defaultConfig['default']);
 			}
 			$isUnitTest = Configure::read('inUnitTest');
 			if (!empty($isUnitTest) && !empty($defaultConfig['test'])) {
-				$config = Hash::merge($config, $defaultConfig['test']);
+				$this->_config = Hash::merge($this->_config, $defaultConfig['test']);
 			}
 			// defaulting logging to be false in prod, true in dev
-			if (!array_key_exists('log', $config)) {
-				$config['log'] = (Configure::read('debug') > 0);
+			if (!array_key_exists('log', $this->_config)) {
+				$this->_config['log'] = (Configure::read('debug') > 0);
 			}
 		}
 		if (!empty($config)) {
-			$config = Hash::merge($this->_config, $config);
-			$this->verifyConfig($config);
-			$config['verified'] = true;
+			$this->_config = Hash::merge($this->_config, $config);
+			$this->_config['verified'] = false;
 		}
-		$this->_config = $config;
-		if (empty($this->_config)) {
+		if (empty($this->_config['verified'])) {
 			$this->verifyConfig($this->_config);
+			$this->_config['verified'] = true;
 		}
 		return $this->_config;
 	}

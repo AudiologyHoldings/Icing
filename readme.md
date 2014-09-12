@@ -1,5 +1,7 @@
 # CakePHP Icing Plugin
 
+[![Build Status](https://travis-ci.org/AudiologyHoldings/Icing.svg?branch=master)](https://travis-ci.org/AudiologyHoldings/Icing)
+
 Portable Package of Utilities for CakePHP
 
 # Helpers

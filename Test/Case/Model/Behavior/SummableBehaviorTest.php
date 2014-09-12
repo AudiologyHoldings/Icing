@@ -18,6 +18,7 @@
  *
  *  (internal helpers)
  *
+ * @package default
  */
 App::uses('Model', 'Model');
 App::uses('ModelBehavior', 'Model');
@@ -84,7 +85,7 @@ class SummableBehaviorTest extends CakeTestCase {
 	 * a test of the customFind method setup in the Behavior
 	 */
 	public function testFindSumBool() {
-		$result = $this->Stat->find('sum', array( 'fields' => 'boolean',));
+		$result = $this->Stat->find('sum', array( 'fields' => 'boolean', ));
 		$expect = $this->Stat->find('count', array('conditions' => array('boolean' => 1)));
 		$this->assertEquals($result, $expect);
 		$this->assertNotEmpty($result);

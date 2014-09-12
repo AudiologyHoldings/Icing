@@ -75,7 +75,7 @@ class PhpTidyShell extends Shell {
 			}
 			if (is_dir($path)) {
 				$dir = new Folder($path);
-				$files = $dir->findRecursive('*.php');
+				$files = $dir->findRecursive('.*\.php$');
 			}
 			if (empty($files)) {
 				$this->error("Invalid file type $path");

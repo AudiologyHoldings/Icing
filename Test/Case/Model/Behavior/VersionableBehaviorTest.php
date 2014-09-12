@@ -2,6 +2,7 @@
 /**
  * VersionableBehavior
  *
+ * @package default
  */
 App::uses('Model', 'Model');
 App::uses('ModelBehavior', 'Model');
@@ -49,15 +50,17 @@ class VersionableUserDefaults extends CakeTestModel {
 class VersionableUserCustomized extends CakeTestModel {
 	public $alias = 'User';
 	public $useTable = 'users';
-	public $actsAs = array('Icing.Versionable' => array(
-		'contain'          => array('Post'),
-		'versions'         => 2,
-		'minor_timeframe'  => 2,
-		'bind'             => true,
-		'check_identical'  => true,
-		'ignore_identical' => true,
-		'useDbConfig' => 'test_archive',
-	));
+	public $actsAs = array(
+		'Icing.Versionable' => array(
+			'contain'          => array('Post'),
+			'versions'         => 2,
+			'minor_timeframe'  => 2,
+			'bind'             => true,
+			'check_identical'  => true,
+			'ignore_identical' => true,
+			'useDbConfig' => 'test_archive',
+		)
+	);
 }
 
 /**
@@ -155,39 +158,48 @@ class VersionableBehaviorTest extends CakeTestCase {
 		$deleted = $this->User->delete($data['User']['id']);
 		$this->assertTrue($deleted);
 		$this->assertEqual(
-			$this->IcingVersion->find('count', array(
-				'conditions' => array(
-					'model' => 'User',
-					'model_id' => $data['User']['id']
+			$this->IcingVersion->find('count',
+				array(
+					'conditions' => array(
+						'model' => 'User',
+						'model_id' => $data['User']['id']
+					)
 				)
-			)),
+			),
 			2
 		);
 		$this->assertEqual(
-			$this->IcingVersion->find('count', array(
-				'conditions' => array(
-					'model' => 'User',
-					'model_id' => $data['User']['id'],
-					'is_delete' => true
+			$this->IcingVersion->find('count',
+				array(
+					'conditions' => array(
+						'model' => 'User',
+						'model_id' => $data['User']['id'],
+						'is_delete' => true
+					)
 				)
-			)),
+			),
 			1
 		);
 
 	}
 
+	/**
+	 *
+	 */
 	public function testSettingsFromConfigure() {
 		$orig = Configure::read('Icing.Versionable.config');
 
-		Configure::write('Icing.Versionable.config', array(
-			'contain'          => array('Foobar'),
-			'versions'         => 9,
-			'minor_timeframe'  => 9,
-			'bind'             => true,
-			'check_identical'  => true,
-			'ignore_identical' => true,
-			'extrasetting'     => __function__
-		));
+		Configure::write('Icing.Versionable.config',
+			array(
+				'contain'          => array('Foobar'),
+				'versions'         => 9,
+				'minor_timeframe'  => 9,
+				'bind'             => true,
+				'check_identical'  => true,
+				'ignore_identical' => true,
+				'extrasetting'     => __function__
+			)
+		);
 
 		$this->VersionableUserDefaults = ClassRegistry::init('VersionableUserDefaults');
 
@@ -210,6 +222,9 @@ class VersionableBehaviorTest extends CakeTestCase {
 		Configure::write('Icing.Versionable.config', $orig);
 	}
 
+	/**
+	 *
+	 */
 	public function testSettingsUseDbConfig() {
 		$this->VersionableUserCustomized = ClassRegistry::init('VersionableUserCustomized');
 
@@ -249,6 +264,9 @@ class VersionableBehaviorTest extends CakeTestCase {
 		 */
 	}
 
+	/**
+	 *
+	 */
 	public function testSaveContain() {
 		// default versions = false
 		$settings = $this->User->getIcingVersionSettings();
@@ -258,9 +276,11 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 
 		// change contain = array(Post)
-		$this->User->Behaviors->load('Icing.Versionable', array(
-			'contain' => array('VersionablePost'),
-		));
+		$this->User->Behaviors->load('Icing.Versionable',
+			array(
+				'contain' => array('VersionablePost'),
+			)
+		);
 		$settings = $this->User->getIcingVersionSettings();
 		$this->assertEqual(
 			$settings['contain'],
@@ -270,12 +290,14 @@ class VersionableBehaviorTest extends CakeTestCase {
 		$this->IcingVersion->deleteAll('1=1');
 		$data = $this->User->find('first');
 		$saved = $this->User->save($data);
-		$version = $this->IcingVersion->find('first', array(
-			'conditions' => array(
-				'model' => 'User',
-				'model_id' => $data['User']['id'],
+		$version = $this->IcingVersion->find('first',
+			array(
+				'conditions' => array(
+					'model' => 'User',
+					'model_id' => $data['User']['id'],
+				)
 			)
-		));
+		);
 		$versionData = json_decode($version['IcingVersion']['json'], true);
 		$this->assertEqual(
 			$versionData['User'],
@@ -295,6 +317,9 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 	}
 
+	/**
+	 *
+	 */
 	public function testSaveVersionsLimit() {
 		// default versions = false
 		$settings = $this->User->getIcingVersionSettings();
@@ -312,9 +337,11 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 
 		// change versions = 2
-		$this->User->Behaviors->load('Icing.Versionable', array(
-			'versions' => 2,
-		));
+		$this->User->Behaviors->load('Icing.Versionable',
+			array(
+				'versions' => 2,
+			)
+		);
 		$settings = $this->User->getIcingVersionSettings();
 		$this->assertEqual(
 			$settings['versions'],
@@ -332,6 +359,9 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 	}
 
+	/**
+	 *
+	 */
 	public function testSaveVersionCheckIdentical() {
 		// default check_identical = false
 		$settings = $this->User->getIcingVersionSettings();
@@ -348,16 +378,20 @@ class VersionableBehaviorTest extends CakeTestCase {
 			4
 		);
 		$this->assertEqual(
-			$this->IcingVersion->find('count', array(
-				'conditions' => array('is_minor_version' => true)
-			)),
+			$this->IcingVersion->find('count',
+				array(
+					'conditions' => array('is_minor_version' => true)
+				)
+			),
 			0
 		);
 
 		// change check_identical = true
-		$this->User->Behaviors->load('Icing.Versionable', array(
-			'check_identical' => true,
-		));
+		$this->User->Behaviors->load('Icing.Versionable',
+			array(
+				'check_identical' => true,
+			)
+		);
 		$settings = $this->User->getIcingVersionSettings();
 		$this->assertTrue($settings['check_identical']);
 
@@ -372,13 +406,18 @@ class VersionableBehaviorTest extends CakeTestCase {
 			4
 		);
 		$this->assertEqual(
-			$this->IcingVersion->find('count', array(
-				'conditions' => array('is_minor_version' => true)
-			)),
+			$this->IcingVersion->find('count',
+				array(
+					'conditions' => array('is_minor_version' => true)
+				)
+			),
 			3
 		);
 	}
 
+	/**
+	 *
+	 */
 	public function testSaveVersionIgnoreIdentical() {
 		// default ignore_identical = false
 		$settings = $this->User->getIcingVersionSettings();
@@ -397,9 +436,11 @@ class VersionableBehaviorTest extends CakeTestCase {
 
 		// change ignore_identical = true
 		//   (auto-sets check_identical == true)
-		$this->User->Behaviors->load('Icing.Versionable', array(
-			'ignore_identical' => true,
-		));
+		$this->User->Behaviors->load('Icing.Versionable',
+			array(
+				'ignore_identical' => true,
+			)
+		);
 		$settings = $this->User->getIcingVersionSettings();
 		$this->assertTrue($settings['ignore_identical']);
 
@@ -415,6 +456,9 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 	}
 
+	/**
+	 *
+	 */
 	public function testRestoreVersionByVersionInt() {
 		$data = $this->User->find('first');
 		$orig = $data;
@@ -444,6 +488,9 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 	}
 
+	/**
+	 *
+	 */
 	public function testRestoreVersionByVersionId() {
 		$data = $this->User->find('first');
 		$orig = $data;
@@ -462,12 +509,14 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 
 		// do restore
-		$version = $this->IcingVersion->find('first', array(
-			'conditions' => array(
-				'model' => 'User',
-				'model_id' => $data['User']['id'],
+		$version = $this->IcingVersion->find('first',
+			array(
+				'conditions' => array(
+					'model' => 'User',
+					'model_id' => $data['User']['id'],
+				)
 			)
-		));
+		);
 		$this->assertTrue(
 			$this->User->restoreVersion($version['IcingVersion']['id'])
 		);
@@ -479,6 +528,9 @@ class VersionableBehaviorTest extends CakeTestCase {
 		);
 	}
 
+	/**
+	 *
+	 */
 	public function testRestoreVersionImpossible() {
 		// bad version
 		$version = $this->IcingVersion->find('first');

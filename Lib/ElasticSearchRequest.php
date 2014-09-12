@@ -466,8 +466,10 @@ class ElasticSearchRequest extends HttpSocket {
 			if (strpos($error, 'IndexAlreadyExistsException') !== false) {
 				return array('message' => 'IndexAlreadyExistsException', '_code' => 200);
 			}
-			$error = str_replace(array('[', ']'), ' ', $error);
-			throw new ElasticSearchRequestException("Request failed, got a response code of {$response->code} {$error}");
+			if (!empty($response->code)) {
+				$error = str_replace(array('[', ']'), ' ', $error);
+				throw new ElasticSearchRequestException("Request failed, got a response code of {$response->code} {$error}");
+			}
 		}
 		if (empty($data) && $request['method'] != 'HEAD') {
 			throw new ElasticSearchRequestException("Request failed, response empty: {$response->body}");

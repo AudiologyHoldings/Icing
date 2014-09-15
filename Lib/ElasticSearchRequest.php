@@ -508,7 +508,14 @@ class ElasticSearchRequest extends HttpSocket {
 				$this->_config['log'] = (Configure::read('debug') > 0);
 			}
 		}
-		if (!empty($config)) {
+		if (!empty($config) && is_array($config)) {
+			foreach ($config as $key => $val) {
+				if ($val === null) {
+					// have to do this, instead of array_diff()
+					// because the config array can contain nested arrays
+					unset($config[$key]);
+				}
+			}
 			$this->_config = Hash::merge($this->_config, $config);
 			$this->_config['verified'] = false;
 		}

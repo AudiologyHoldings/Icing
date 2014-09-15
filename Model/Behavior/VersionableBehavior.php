@@ -1,52 +1,61 @@
 <?php
 /**
-  * Attach to any model to creating versions of current state on save for later restoration
-  *
-  * To determine the User making the save:
-  *   uses the $Model->getUserId() if the method exists (could implement in AppModel)
-  *   uses the AuthComponent::user() if the class exists (App::uses('AuthComponent', 'Controller/Component'))
-  *   else, user_id = 0
-  *
-  * Setup:
-  *   You have to install the icing_versions table into your database.  You can do so by running:
-  *
-  * cake schema create -p Icing
-  *
-  *
-  * Example Usage:
-  * @example
-  * public $actsAs = array('Icing.Versionable');
-  *
-  * @example
-  	public $actsAs = array('Icing.Versionable' => array(
-  		'contain'          => array('Hour'), //contains for relative model to be saved.
-  		'versions'         => '5',           //how many version to save at any given time (false by default unlimited)
-  		'minor_timeframe'  => '10',          //Mark as minor_version if saved within 10 seconds of last version.  Easily cleanup minor_versions
-  		'bind'             => false,         //if true, attach IcingVersionable as HasMany relationship for you onFind and if contained
-  		'check_identical'  => false,         //if true, version is marked as minor, if the data is identical to last version
-  		'ignore_identical' => false,         //if true, no version is created, if the data is identical to last version
-  	));
-
-  	Restore from Previous Version
-  	@example
-  	$this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a'); //restores version id 50537471-ba08-44ae-a606-24e5e017215a
-  	$this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a', false); //restores version id 50537471-ba08-44ae-a606-24e5e017215a and won't create a new version before restoring.
-  	$this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
-  	$this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
-
-  	Diffs from a version
-  	@example
-  	$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
-		$result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); //Gets the diff between two different versions.
-
-		Saving without making a version
-		@example
-		$this->Model->save($data, array('create_version' => false));
-
-  * @version: since 1.0
-  * @author: Nick Baker
-  * @link: http://www.webtechnick.com
-  */
+ * Attach to any model to creating versions of current state on save for later restoration
+ *
+ * To determine the User making the save:
+ *   uses the $Model->getUserId() if the method exists (could implement in AppModel)
+ *   uses the AuthComponent::user() if the class exists (App::uses('AuthComponent', 'Controller/Component'))
+ *   else, user_id = 0
+ *
+ * Setup:
+ *   You have to install the icing_versions table into your database.  You can do so by running:
+ *
+ * cake schema create -p Icing
+ *
+ *
+ * Example Usage:
+ *
+ * @example
+ *
+ * public $actsAs = array('Icing.Versionable');
+ *
+ * public $actsAs = array('Icing.Versionable' => array(
+ * 	'contain'          => array('Hour'), //contains for relative model to be saved.
+ * 	'versions'         => '5',           //how many version to save at any given time (false by default unlimited)
+ * 	'minor_timeframe'  => '10',          //Mark as minor_version if saved within 10 seconds of last version.  Easily cleanup minor_versions
+ * 	'bind'             => false,         //if true, attach IcingVersionable as HasMany relationship for you onFind and if contained
+ * 	'check_identical'  => false,         //if true, version is marked as minor, if the data is identical to last version
+ * 	'ignore_identical' => false,         //if true, no version is created, if the data is identical to last version
+ * 	'useDbConfig'      => null,          //if not null, we switch the IcingVersion Model to this DB config key ('default' inherited from AppModel)
+ * ));
+ *
+ * Or for a global Configure::read() solution
+ *
+ * Configure::write('Icing.Versionable.config', ['useDbConfig' => 'something']);
+ *
+ * Restore from Previous Version
+ * @example
+ *
+ * $this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a'); //restores version id 50537471-ba08-44ae-a606-24e5e017215a
+ * $this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a', false); //restores version id 50537471-ba08-44ae-a606-24e5e017215a and won't create a new version before restoring.
+ * $this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
+ * $this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
+ *
+ * Diffs from a version
+ * @example
+ *
+ * $result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
+ * $result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); //Gets the diff between two different versions.
+ *
+ * Saving without making a version
+ * @example
+ * $this->Model->save($data, array('create_version' => false));
+ *
+ *
+ * @version: since 1.0
+ * @author: Nick Baker
+ * @link: http://www.webtechnick.com
+ */
 App::import('Component', 'Auth');
 //App::uses('AuthComponent', 'Controller/Component');
 App::uses('IcingUtil', 'Icing.Lib');
@@ -63,19 +72,39 @@ class VersionableBehavior extends ModelBehavior {
 	 * @return void
 	 */
 	public function setUp(Model $Model, $settings = array()) {
-		$settings = array_merge(array(
-			'contain' => array(),
-			'versions' => false,
-			'minor_timeframe' => false,
-			'bind' => false,
-			'check_identical' => false,
+		$defaults = array(
+			'contain'          => array(),
+			'versions'         => false,
+			'minor_timeframe'  => false,
+			'bind'             => false,
+			'check_identical'  => false,
 			'ignore_identical' => false,
-		), (array)$settings);
+			'useDbConfig'      => null,
+		);
+		$config = Configure::read('Icing.Versionable.config');
+		if (!empty($config) && is_array($config)) {
+			$defaults = array_merge($defaults, $config);
+		}
+		$this->settings[$Model->alias] = array_merge($defaults, (array)$settings);
+
+		// initialize the IcingVersion model onto this Behavior for easy access
+		$this->IcingVersion = ClassRegistry::init('Icing.IcingVersion');
+
+		// modify this instance of the IcingVersion Model if useDbConfig is set & not = test
+		if (!empty($settings['useDbConfig'])) {
+			// if we are testing... we want to "stay in test"
+			//   done this way to aid in unit testing
+			if ($this->IcingVersion->useDbConfig == 'test') {
+				// $Model->wouldHaveSetIcingVersion = $settings['useDbConfig'];
+				$settings['useDbConfig'] = 'test';
+			}
+			$this->IcingVersion->setDataSource($settings['useDbConfig']);
+		}
+
+		// auto attach Containable
 		if (!$Model->Behaviors->attached('Containable')) {
 			$Model->Behaviors->attach('Containable');
 		}
-		$this->settings[$Model->alias] = $settings;
-		$this->IcingVersion = ClassRegistry::init('Icing.IcingVersion');
 	}
 
 	/**
@@ -92,7 +121,7 @@ class VersionableBehavior extends ModelBehavior {
 		}
 		if (!$this->saveVersion($Model)) {
 			// error?
-			//die('unable to save');
+			//throw new OutOfBoundsException('IcingVersionable unable to save version');
 			//return false; // stops save
 		}
 		return true;
@@ -110,6 +139,7 @@ class VersionableBehavior extends ModelBehavior {
 		if (!$this->settings[$Model->alias]['bind']) {
 			return $Model->beforeFind($query);
 		}
+
 		//Only contain if we have it contained, or if no contain is specified
 		if (isset($query['contain']) && !in_array('IcingVersion', $query['contain']) && !key_exists('IcingVersion', $query['contain'])) {
 			return $Model->beforeFind($query);
@@ -162,7 +192,7 @@ class VersionableBehavior extends ModelBehavior {
 	 *  $this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
 	 *  $this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
 	 *
-	 * @param int version id
+	 * @param int $version_id or the $count_of_versions_ago
 	 * @param model_id of the id to reversion if version is an int.
 	 * @param boolean create a new version on restore. boolean true
 	 * @return boolean result of saveAll on model
@@ -173,10 +203,10 @@ class VersionableBehavior extends ModelBehavior {
 			$model_id = 0;
 		}
 		$restore = false;
-		if (strlen($version_id) == 36) {
-			$restore = $this->IcingVersion->findById($version_id);
-		} elseif ($model_id) {
+		if (is_numeric($version_id) && !empty($model_id)) {
 			$restore = $this->IcingVersion->findVersionBack($Model->alias, $version_id, $model_id);
+		} else {
+			$restore = $this->IcingVersion->findById($version_id);
 		}
 
 		if (!empty($restore)) {
@@ -278,4 +308,39 @@ class VersionableBehavior extends ModelBehavior {
 		}
 		$this->errors[$Model->alias][] = $message;
 	}
+
+	/**
+	 * Get old data, get the last copy of the data before it was saved
+	 * (only works for the last save, subsequent saves will overwrite)
+	 *
+	 * TODO: may implement as full getter/setter pattern
+	 *   (but it's not close to stateless right now anyway)
+	 *
+	 * @param Model model
+	 * @return array $oldData
+	 */
+	public function getDataBeforeSave(Model $Model) {
+		return $Model->oldData;
+	}
+
+	/**
+	 * Simple access to the IcingVersionable->settings for this model, from the model
+	 *
+	 * @param Model model
+	 * @return array $settings
+	 */
+	public function getIcingVersionSettings(Model $Model) {
+		return $this->settings[$Model->alias];
+	}
+
+	/**
+	 * Simple access to the IcingVersionable->IcingVersion Model, from the model
+	 *
+	 * @param Model model
+	 * @return Model $IcingVersion
+	 */
+	public function getIcingVersion(Model $Model) {
+		return $this->IcingVersion;
+	}
+
 }

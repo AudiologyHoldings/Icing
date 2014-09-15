@@ -1,6 +1,8 @@
 <?php
 /**
  * Throttle Test
+ *
+ * @package default
  */
 App::uses('Throttle', 'Icing.Model');
 class ThrottleTest extends CakeTestCase {
@@ -8,15 +10,28 @@ class ThrottleTest extends CakeTestCase {
 		'plugin.icing.throttle',
 	);
 
+	/**
+	 *
+	 *
+	 * @param unknown $method
+	 */
 	public function startTest($method) {
 		parent::startTest($method);
 		$this->Throttle = ClassRegistry::init('Icing.Throttle');
 	}
+	/**
+	 *
+	 *
+	 * @param unknown $method
+	 */
 	public function endTest($method) {
 		unset($this->Throttle);
 		parent::endTest($method);
 	}
 
+	/**
+	 *
+	 */
 	public function testCheck() {
 		$this->assertEqual(0, $this->Throttle->find('count'));
 		$this->assertTrue($this->Throttle->check('a', 10));
@@ -49,6 +64,9 @@ class ThrottleTest extends CakeTestCase {
 		$this->assertEqual(5, $this->Throttle->find('count'));
 	}
 
+	/**
+	 *
+	 */
 	public function testRecord() {
 		$this->assertEqual(0, $this->Throttle->find('count'));
 		$this->assertTrue($this->Throttle->record('a', 5));
@@ -63,6 +81,9 @@ class ThrottleTest extends CakeTestCase {
 		$this->assertTrue($this->Throttle->record('c', 86400));
 	}
 
+	/**
+	 *
+	 */
 	public function testCheckThenSet() {
 		// most of this is tested in subfunction tests above
 		$this->assertEqual(0, $this->Throttle->find('count'));
@@ -75,6 +96,9 @@ class ThrottleTest extends CakeTestCase {
 		$this->assertEqual(3, $this->Throttle->find('count'));
 	}
 
+	/**
+	 *
+	 */
 	public function testLimit() {
 		// alias of testCheckThenSet()
 		$this->assertEqual(0, $this->Throttle->find('count'));
@@ -87,6 +111,9 @@ class ThrottleTest extends CakeTestCase {
 		$this->assertEqual(3, $this->Throttle->find('count'));
 	}
 
+	/**
+	 *
+	 */
 	public function testPurge() {
 		$this->assertEqual(0, $this->Throttle->find('count'));
 		$this->Throttle->create(false);

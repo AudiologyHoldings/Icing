@@ -18,6 +18,7 @@
  *
  *  (internal helpers)
  *
+ * @package default
  */
 App::uses('Model', 'Model');
 App::uses('ModelBehavior', 'Model');
@@ -26,13 +27,17 @@ App::uses('SummableBehavior', 'Icing.Model/Behavior');
 /**
  * Stat model
  */
-class Stat extends CakeTestModel {
+class SummableStat extends CakeTestModel {
+	public $alias = 'Stat';
+	public $useTable = 'stats';
 	public $actsAs = array('Summable');
 }
 /**
  * Stat model
  */
-class User extends CakeTestModel {
+class SummableUser extends CakeTestModel {
+	public $alias = 'User';
+	public $useTable = 'users';
 	public $actsAs = array('Summable');
 }
 /**
@@ -47,7 +52,8 @@ class SummableBehaviorTest extends CakeTestCase {
 	 * @var array
 	 */
 	public $fixtures = array(
-		'plugin.icing.stat', 'core.user'
+		'plugin.icing.stat',
+		'core.user'
 	);
 
 	/**
@@ -58,8 +64,8 @@ class SummableBehaviorTest extends CakeTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->Summable = new SummableBehavior();
-		$this->Stat = ClassRegistry::init('Stat');
-		$this->User = ClassRegistry::init('User');
+		$this->Stat = ClassRegistry::init('SummableStat');
+		$this->User = ClassRegistry::init('SummableUser');
 	}
 
 	/**
@@ -79,7 +85,7 @@ class SummableBehaviorTest extends CakeTestCase {
 	 * a test of the customFind method setup in the Behavior
 	 */
 	public function testFindSumBool() {
-		$result = $this->Stat->find('sum', array( 'fields' => 'boolean',));
+		$result = $this->Stat->find('sum', array( 'fields' => 'boolean', ));
 		$expect = $this->Stat->find('count', array('conditions' => array('boolean' => 1)));
 		$this->assertEquals($result, $expect);
 		$this->assertNotEmpty($result);

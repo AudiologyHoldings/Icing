@@ -25,7 +25,6 @@
  * @license    MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
 App::uses('Hash', 'Lib');
-App::uses('Set', 'Lib');
 App::uses('Pluck', 'Icing.Lib'); /* plucks on Re are DEPRECATED */
 class Re {
 
@@ -290,7 +289,7 @@ class Re {
 	 *
 	 * returns the value of the $path from the input $data
 	 * but only if it isValid()
-	 * this is baically Set::extract() but it returns the first
+	 * this is baically Hash::extract() but it returns the first
 	 * value match for a path, which is valid,
 	 * instead of an array of matches
 	 * also, you can pass in an array of possible paths and you get the
@@ -346,17 +345,17 @@ class Re {
 	/**
 	 * Merge 2 arrays, but only merge in the $defaults which were "empty" in $data
 	 *
-	 * Set::filter() - $data
-	 * Set::merge() - $defaultsAndData + $filteredData
+	 * Hash::filter() - $data
+	 * Hash::merge() - $defaultsAndData + $filteredData
 	 *
 	 * @param array $defaults
 	 * @param array $data
 	 * @return array $data
 	 */
 	public static function mergeIfEmpty($defaults, $data) {
-		$defaultsAndData = Set::merge($data, $defaults);
-		$filteredData = Set::filter($data);
-		return Set::merge($defaultsAndData, $filteredData);
+		$defaultsAndData = Hash::merge($data, $defaults);
+		$filteredData = Hash::filter($data);
+		return Hash::merge($defaultsAndData, $filteredData);
 	}
 
 }

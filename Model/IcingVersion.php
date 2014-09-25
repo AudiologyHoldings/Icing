@@ -200,12 +200,13 @@ class IcingVersion extends IcingAppModel {
 		if (empty($data['is_minor_version']) && !empty($settings['minor_timeframe'])) {
 			// find all the records which "should be minor"
 			$versions_within_timeframe = $this->find('list', array(
+				'fields' => array('id'),
 				'conditions' => array_merge($conditions, array(
 					'IcingVersion.created >=' => date("Y-m-d H:i:s", strtotime("-{$settings['minor_timeframe']} seconds", time())),
 					'IcingVersion.is_minor_version' => false,
 				)),
 			));
-			foreach ($versions_within_timeframe as $version_id => $model) {
+			foreach ($versions_within_timeframe as $version_id) {
 				$this->id = $version_id;
 				$this->saveField('is_minor_version', true);
 			}

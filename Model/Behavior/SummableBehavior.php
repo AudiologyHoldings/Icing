@@ -94,6 +94,13 @@ class SummableBehavior extends ModelBehavior {
 		}
 		// get to the value passed back (should only be one, it'll be the first
 		$results = Hash::flatten($results);
+		foreach ($results as $key => $value) {
+			// checking to ensure the right field is returned (contains puts others in)
+			if (strpos($key, 'SUM') !== false && is_numeric($value)) {
+				return $value;
+			}
+		}
+		// not found... just returning first and wishing for the best
 		return array_shift($results);
 	}
 }

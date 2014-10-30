@@ -32,78 +32,98 @@ class ElasticSearchRequest extends HttpSocket {
 	}
 
 	/**
-	 * Quick and simple _search functionality
-	 *   including basic query parsing/handling
+	 * Sends request to _search.
 	 *
 	 * @param mixed $query
+	 *   Can be a simple string - if so, it's wrapped as a "query_string" query against the _all field.
+	 *   http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
+	 *
+	 *   Can also be an array of a custom built query.  If it does have a 'query' key, it will be wrapped in ['query' => $orig].
+	 *   (Is auto wrapping needed/useful?)
+	 *
 	 * @param array $request
-	 * @param boolean $returnRaw
+	 *    Additional array of parameters to be sent along with the request.
+	 *
+	 * @param boolean $returnRaw (default = false)
+	 *    If false, we return $ESresponse['hits']['hits'], removing the following information
+	 *       - How long the query took
+	 *		 - If the search timed out
+	 *       - How many shards were searched, and success/fail count from those
+	 *       - Total number of matched documents
+	 *    Additionally, in $ESresponse['hits']['hits'], for each hit, the '_index' and '_type' are removed.
 	 */
 	public function search($query = '', $request = array(), $returnRaw = false) {
-		$request = $this->buildRequest($request);
+
+		// We will end up sending $request to elasticsearch.
+		// the ['body'] key will be built from sending $query to buildQueryFromStringOrArray(),
+		// and some certain keys from $request will be added to $request['body'].
+
+		$request = $this->addConfigToRequest($request);
 		$request['method'] = 'GET';
 		$request['uri']['path'] .= '/_search';
-		// setup the query
-		$data = $this->parseQuery($query);
 
-		// extra details - special cases
-		if (!empty($request['limit'])) {
+		$requestBody = $this->buildQueryFromStringOrArray($query);
+
+		// copy from $request to $requestBody - simple field copies.
+		// 'from' and 'size' limited to integer
+		foreach (array('from', 'size') as $intField) {
+			if (!empty($request[$intField])) {
+				$requestBody[$intField] = intval($request[$intField]);
+			}
+		}
+		// 'min_score' simple copy
+		foreach (array('min_score') as $field) {
+			if (!empty($request[$field])) {
+				$requestBody[$field] = $request[$field];
+			}
+		}
+
+		// copy from $request to $requestBody - special cases
+		if (!empty($request['limit']) && empty($requestBody['size'])) {
 			// 'limit' as a synonym for size
-			$data['size'] = intval($request['limit']);
+			$requestBody['size'] = intval($request['limit']);
 		}
 		if (!empty($request['page']) && !empty($request['size'])) {
 			// auto set 'from' if 'page' and 'size' are set
-			$data['from'] = (intval($request['page']) - 1) * intval($request['size']);
+			$requestBody['from'] = (intval($request['page']) - 1) * intval($request['size']);
 		}
 		if (!empty($request['fields'])) {
 			// 'fields' may be an array
-			$data['fields'] = (is_array($request['fields']) ? array_values($request['fields']) : explode(',', $request['fields']));
+			$requestBody['fields'] = is_array($request['fields']) ? array_values($request['fields']) : explode(',', $request['fields']);
 		}
 
-		// extra details - simple field copies. 'from' and 'size' limited to integer, 'min_score' simple copy
-		foreach (['from', 'size'] as $int_field) {
-			if (!empty($request[$int_field])) {
-				$data[$int_field] = intval($request[$int_field]);
-			}
-		}
-		foreach (['min_score'] as $field) {
-			if (!empty($request[$field])) {
-				$data[$field] = $request[$field];
-			}
-		}
+		$request['body'] = $this->asJson($requestBody);
+		$ESresponse = $this->request($request);
 
-		// set the $data
-		$request['body'] = $this->asJson($data);
-		$data = $this->request($request);
 		if ($returnRaw) {
-			return $data;
+			return $ESresponse;
 		}
-		if (empty($data['hits']['hits'])) {
+		if (empty($ESresponse['hits']['hits'])) {
 			return array();
 		}
 		$output = array();
 
-		foreach (array_keys($data['hits']['hits']) as $i) {
-			$hit = $data['hits']['hits'][$i];
+		foreach (array_keys($ESresponse['hits']['hits']) as $i) {
+			$hit = $ESresponse['hits']['hits'][$i];
 			// Always include ID
 			$output[$i] = array(
 				'_id' => $hit['_id'],
 			);
 
 			// Single fields we add if existing
-			foreach (['_score'] as $single_field) {
-				if (!empty($hit[$single_field])) {
-					$output[$i][$single_field] = $hit[$single_field];
+			foreach (array('_score') as $singleField) {
+				if (!empty($hit[$singleField])) {
+					$output[$i][$singleField] = $hit[$singleField];
 				}
 			}
 
 			// These are arrays that are merged in if they exist
-			foreach (['_source', 'fields'] as $array_field) {
+			foreach (array('_source', 'fields') as $array_field) {
 				if (!empty($hit[$array_field])) {
 					$output[$i] += $hit[$array_field];
 				}
 			}
-			unset($data['hits']['hits'][$i]);
+			unset($ESresponse['hits']['hits'][$i]);
 		}
 
 		return $output;
@@ -111,24 +131,40 @@ class ElasticSearchRequest extends HttpSocket {
 
 	public function createIndex($index, $request = array()) {
 		$request['uri']['path'] = "/{$index}";
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$request['method'] = 'PUT';
 		$request['body'] = '';
 		$data = $this->request($request);
-		return (!empty($data['ok']));
+
+		if ($data['_code'] != 200) {
+			return false;
+		}
+
+		// Wait for index to become ready. Wait a max of 60 seconds, retry every 50ms
+		$startTime = time();
+		while ($startTime + 60 > time()) {
+			$stages = $this->getRecoveryStagesForIndex($index);
+			if (!in_array('START', $stages)) {
+				return true;
+			}
+			usleep(50000); //50ms
+		}
+
+		$this->log("CreateIndex:  Index [$index] took longer than 60 seconds to become ready.");
+		return true;
 	}
 
 	public function deleteIndex($index, $request = array()) {
 		$request['uri']['path'] = "/{$index}";
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$request['method'] = 'DELETE';
 		$request['body'] = '';
 		$data = $this->request($request);
-		return (!empty($data['ok']));
+		return $data['_code'] == 200;
 	}
 
 	public function createMapping($mapping, $request = array()) {
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$table = $this->verifyTableOnPath($request);
 		if (!array_key_exists($table, $mapping)) {
 			$mapping = array($table => $mapping);
@@ -140,11 +176,11 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['uri']['path'] .= '/_mapping';
 		$request['body'] = $this->asJson($mapping);
 		$data = $this->request($request);
-		return (!empty($data['ok']));
+		return $data['_code'] == 200;
 	}
 
 	public function getMapping($request = array()) {
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$this->verifyTableOnPath($request);
 		$request['method'] = 'GET';
 		$request['uri']['path'] .= '/_mapping';
@@ -154,7 +190,7 @@ class ElasticSearchRequest extends HttpSocket {
 	}
 
 	public function createRecord($data, $request = array()) {
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$this->verifyTableOnPath($request);
 		$request['method'] = 'POST';
 		$request['uri']['path'] .= '/'; // automatic ID creation
@@ -167,7 +203,7 @@ class ElasticSearchRequest extends HttpSocket {
 	}
 
 	public function updateRecord($id, $data, $request = array()) {
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$this->verifyTableOnPath($request);
 		$request['method'] = 'POST';
 		$request['uri']['path'] .= "/{$id}"; // explicit id = overwrite
@@ -180,17 +216,17 @@ class ElasticSearchRequest extends HttpSocket {
 	}
 
 	public function deleteRecord($id, $request = array()) {
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$this->verifyTableOnPath($request);
 		$request['method'] = 'DELETE';
 		$request['uri']['path'] .= "/{$id}"; // explicit id = overwrite
 		$request['body'] = '';
 		$data = $this->request($request);
-		return (!empty($data['ok']));
+		return $data['_code'] == 200;
 	}
 
 	public function getRecord($id, $request = array()) {
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$this->verifyTableOnPath($request);
 		$request['method'] = 'GET';
 		$request['uri']['path'] .= "/{$id}";
@@ -201,8 +237,56 @@ class ElasticSearchRequest extends HttpSocket {
 		return $data;
 	}
 
+	/**
+	 *  Calls the "indicies recovery" API and returns raw data.
+	 *  http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-recovery.html
+	 *
+	 *  Note:  Tells this->request to skip handleRequest().  That way, we may use this function
+	 *  inside handleRequest() without causing infinite loops.
+	 *
+	 *  @param string Index name
+	 *  @param array Request override [not used]
+	 *  @return array Raw json recovery data
+	 **/
+	public function getRecoveryRawForIndex($index, $request = array()) {
+		$request['uri']['path'] = "/{$index}/_recovery";
+		$request = $this->addConfigToRequest($request);
+		$request['method'] = 'GET';
+		$request['body'] = '';
+		$data = $this->request($request, array('skipHandleResponse' => true));
+		#pr($data);
+		return $data;
+	}
+
+	/**
+	 *  Calls the "indicies recovery" API and returns an array of stages, 1 for each shard.
+	 *  http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-recovery.html
+	 *
+	 *  Note:  Tells this->request to skip handleRequest().  That way, we may use this function
+	 *  inside handleRequest() without causing infinite loops.
+	 *
+	 *  Example of return value when everything is good
+	 *  ["DONE", "DONE", "DONE", "DONE"]
+	 *
+	 *  Example of return value when shards are rebuilding
+	 *  ["DONE", "DONE", "TRANSLOG", "DONE", "TRANSLOG"]
+     *
+	 *  Example of return value when a newly created index is not ready to be used
+	 *  ["START", "START", "START", "START", "START"]
+	 *
+	 *  @param string Index name
+	 *  @param array Request override [not used]
+	 *  @return array Stages
+	 **/
+	public function getRecoveryStagesForIndex($index, $request = array()) {
+		$recovery = $this->getRecoveryRawForIndex($index, $request);
+		$stages = Hash::extract($recovery, "$index.shards.{n}.stage");
+		return $stages;
+	}
+
+
 	public function exists($id, $request = array()) {
-		$request = $this->buildRequest($request);
+		$request = $this->addConfigToRequest($request);
 		$this->verifyTableOnPath($request);
 		$request['method'] = 'HEAD';
 		$request['uri']['path'] .= "/{$id}";
@@ -220,13 +304,23 @@ class ElasticSearchRequest extends HttpSocket {
 	}
 
 	/**
+	 * buildQueryFromStringOrArray: Pass it a query, it returns a possibly modified query
 	 *
-	 * TODO: this needs to be extened a bunch
+	 *    If it's a string query, it's passed through textQueryToFuzzyOrQueryStringQuery(), which turns it into
+	 *                  (a) a query_string query that's lenient.
+	 *               or (b) a fuzzy_like_this query if the first character is a ~.
+	 *
+	 *    If it's an array query, it's wrapped in ['query' => ???] if there's no 'query' key. (Why?)
+	 *
+	 *    If it's an array query and the  array key 'query' is a string,
+	 *    that value is wrapped in a 'query_string' query.  (Why?)
+	 *
+	 * TODO: this needs to be extended a bunch
 	 *
 	 * @param mixed $query or $query_string
 	 * @return array $query as nested query array
 	 */
-	public function parseQuery($query = '') {
+	public function buildQueryFromStringOrArray($query = '') {
 		if (empty($query)) {
 			return array();
 		}
@@ -238,7 +332,7 @@ class ElasticSearchRequest extends HttpSocket {
 			}
 		}
 		if (is_string($query)) {
-			$query = $this->autoQuery($query);
+			$query = $this->textQueryToFuzzyOrQueryStringQuery($query);
 		}
 		// it's an array, validate that it's wrapped in "query"
 		if (!array_key_exists('query', $query)) {
@@ -251,10 +345,13 @@ class ElasticSearchRequest extends HttpSocket {
 	}
 
 	/**
-	 * Automate a query: string --> nested query
+	 * Automate a query: string --> nested array query
 	 *   supports:
-	 *     '~fuzzy' - supports fuzzy_like_this creation http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-flt-query.html
-	 *     'query' - defaults to query, query_string, query
+	 *     '~fuzzy' - supports fuzzy_like_this creation
+	 *				  http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-flt-query.html
+	 *
+	 *     'query'  - defaults to query, query_string, query
+	 *               http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
 	 *       'term'
 	 *       'partial*'
 	 *       '"phrase"'
@@ -263,12 +360,13 @@ class ElasticSearchRequest extends HttpSocket {
 	 * @param string $query_string
 	 * @return array $query as array
 	 */
-	public function autoQuery($query_string) {
+	public function textQueryToFuzzyOrQueryStringQuery($query_string) {
 		if (substr($query_string, 0, 1) == '~') {
 			$query_string = substr($query_string, 1);
 			// treat as a fuzzy term match
 			return array('query' => array('fuzzy_like_this' => array('like_text' => $query_string)));
 		}
+
 		// treat is as a simple query string
 		return array(
 			'query' => array(
@@ -283,7 +381,7 @@ class ElasticSearchRequest extends HttpSocket {
 	/**
 	 * Swiss army knife
 	 *
-	 * @param array $options
+	 * @param array $request
 	 *   - method [GET, POST, PUT, DELETE]
 	 *   - index (optional override)
 	 *   - table (optional - appends to index to create path)
@@ -291,13 +389,19 @@ class ElasticSearchRequest extends HttpSocket {
 	 *     - uri
 	 *       - path (we auto-set this to: /$index/$table/$action)
 	 *       - query (eg: ?pretty-true)
-	 *     - heeader
+	 *     - header
+	 * @param array $options
+	 *     - Set key 'skipHandleResponse' to get raw data returned
+	 *       instead of calling handleResponse().
+	 *
+	 * @return array $response friendly (usually via handleResponse())
 	 */
-	public function request($request = array()) {
+	public function request($request = array(), $options = array()) {
 		$this->log(compact('request'));
 		$this->last['request'] = $request;
 		$this->last['response'] = null;
 		$this->last['error'] = null;
+
 		// do the request
 		try {
 			$response = parent::request($request);
@@ -306,9 +410,16 @@ class ElasticSearchRequest extends HttpSocket {
 			$this->log(array('SocketException' => $e->getMessage()));
 			return false;
 		}
+
 		// log the response
 		$this->log(compact('response'));
 		$this->last['response'] = $response;
+
+		// if asked to skipHandleResponse, return it
+		if (!empty($options['skipHandleResponse'])) {
+			return array_merge( (array) @json_decode($response->body, true), array('_code' => $response->code));
+		}
+
 		// handle the response
 		try {
 			return $this->handleResponse($response, $request);
@@ -341,23 +452,24 @@ class ElasticSearchRequest extends HttpSocket {
 	 */
 	public function handleResponse($response, $request = null) {
 		// validate the request
-		$data = @json_decode($response->body, true);
+		$data = array_merge( (array) @json_decode($response->body, true), array('_code' => $response->code));
 		if (!empty($data['error']) || !in_array($response->code, array(200, 201))) {
 			$error = (empty($data['error']) ? 'unknown error' : $data['error']);
 			if (preg_match('#IndexMissingException\[\[(.+)\] missing\]#', $error, $match)) {
 				$index = $match[1];
 				if ($this->createIndex($index, $request) && empty($this->retrying)) {
-					sleep(1);
 					$this->retrying = true; // retry -- watch out for a loop
 					$this->log('retrying');
 					return $this->request($request);
 				}
 			}
 			if (strpos($error, 'IndexAlreadyExistsException') !== false) {
-				return array('ok' => true, 'message' => 'IndexAlreadyExistsException');
+				return array('message' => 'IndexAlreadyExistsException', '_code' => 200);
 			}
-			$error = str_replace(array('[', ']'), ' ', $error);
-			throw new ElasticSearchRequestException("Request failed, got a response code of {$response->code} {$error}");
+			if (!empty($response->code)) {
+				$error = str_replace(array('[', ']'), ' ', $error);
+				throw new ElasticSearchRequestException("Request failed, got a response code of {$response->code} {$error}");
+			}
 		}
 		if (empty($data) && $request['method'] != 'HEAD') {
 			throw new ElasticSearchRequestException("Request failed, response empty: {$response->body}");
@@ -385,25 +497,31 @@ class ElasticSearchRequest extends HttpSocket {
 			}
 			$defaultConfig = Configure::read('ElasticSearchRequest');
 			if (!empty($defaultConfig['default'])) {
-				$config = Hash::merge($config, $defaultConfig['default']);
+				$this->_config = Hash::merge($this->_config, $defaultConfig['default']);
 			}
 			$isUnitTest = Configure::read('inUnitTest');
 			if (!empty($isUnitTest) && !empty($defaultConfig['test'])) {
-				$config = Hash::merge($config, $defaultConfig['test']);
+				$this->_config = Hash::merge($this->_config, $defaultConfig['test']);
 			}
 			// defaulting logging to be false in prod, true in dev
-			if (!array_key_exists('log', $config)) {
-				$config['log'] = (Configure::read('debug') > 0);
+			if (!array_key_exists('log', $this->_config)) {
+				$this->_config['log'] = (Configure::read('debug') > 0);
 			}
 		}
-		if (!empty($config)) {
-			$config = Hash::merge($this->_config, $config);
-			$this->verifyConfig($config);
-			$config['verified'] = true;
+		if (!empty($config) && is_array($config)) {
+			foreach ($config as $key => $val) {
+				if ($val === null) {
+					// have to do this, instead of array_diff()
+					// because the config array can contain nested arrays
+					unset($config[$key]);
+				}
+			}
+			$this->_config = Hash::merge($this->_config, $config);
+			$this->_config['verified'] = false;
 		}
-		$this->_config = $config;
-		if (empty($this->_config)) {
+		if (empty($this->_config['verified'])) {
 			$this->verifyConfig($this->_config);
+			$this->_config['verified'] = true;
 		}
 		return $this->_config;
 	}
@@ -466,7 +584,7 @@ class ElasticSearchRequest extends HttpSocket {
 	 * @param array $request
 	 * @return array $request
 	 */
-	public function buildRequest($request) {
+	public function addConfigToRequest($request) {
 		$allowedKeysFromConfig = array('method', 'uri', 'auth', 'version', 'body', 'line', 'header', 'raw', 'redirect', 'cookies');
 		$config = array_intersect_key($this->_config, array_flip($allowedKeysFromConfig));
 		$request = Hash::merge($config, $request);

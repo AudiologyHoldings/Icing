@@ -158,7 +158,8 @@ class Throttle extends AppModel {
 	 * @return int $affectedRows
 	 */
 	public function purge() {
-		$this->query(sprintf('DELETE FROM `%s` WHERE `expire_epoch` < "%s"',
+		$this->query(sprintf('DELETE FROM `%s` WHERE id IN (SELECT id FROM (SELECT id FROM `%s` WHERE expire_epoch < "%s" ORDER BY id) AS innerquery)',
+			$this->useTable,
 			$this->useTable,
 			time()
 		));

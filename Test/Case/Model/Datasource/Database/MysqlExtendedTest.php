@@ -204,6 +204,35 @@ class MysqlExtendedTest extends CakeTestCase {
 				'DELETE `IcingVersion` WHERE `id` = 1'
 			);
 		}
+
+		// After query1 gets stuck in a loop of retrying and throwing an exception,
+		// Check to make sure query2 will still retry the appropriate amount of times
+		// and not immediately throw an exception.
+		// Exception -> Exception -> return $i,  This query should work.
+		$i = rand(99, 99999);
+		$DboMock
+			->expects($this->at(0))
+			->method('executeOnParent')
+			->will($this->throwException($this->e));
+		$DboMock
+			->expects($this->at(1))
+			->method('executeOnParent')
+			->will($this->throwException($this->e));
+		$DboMock
+			->expects($this->at(2))
+			->method('executeOnParent')
+			->will($this->returnValue($i));
+		try {
+			$this->assertEqual(
+				$DboMock->execute('SHOW STATUS'),
+				$i
+			);
+		} catch (PDOException $e) {
+			$this->assertEqual(
+				'Expected this query to work',
+				'!!got Exception!!'
+			);
+		}
 	}
 
 

@@ -204,14 +204,6 @@ class MysqlExtendedTest extends CakeTestCase {
 				'DELETE `IcingVersion` WHERE `id` = 1'
 			);
 		}
-	}
-
-	public function testExecuteMockedTwiceThenWorked() {
-		$DboMock = $this->getMock('MysqlExtended', [
-			'connect',
-			'describe',
-			'executeOnParent',
-		]);
 
 		// After query1 gets stuck in a loop of retrying and throwing an exception,
 		// Check to make sure query2 will still retry the appropriate amount of times

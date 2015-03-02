@@ -179,6 +179,7 @@ class MysqlExtended extends Mysql {
 	 */
 	public function tryExecuteAgain($e, $sql, $options, $params) {
 		if (!$this->shouldWeExecuteAgain($e)) {
+			$this->tryExecuteAgainUnsetRepeat();
 			$this->log('MysqlExtended: Did not retry query THROWING: ' . $sql);
 			throw $e;
 		}

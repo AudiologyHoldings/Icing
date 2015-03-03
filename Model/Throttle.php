@@ -123,8 +123,13 @@ class Throttle extends AppModel {
 		if (empty($allowed)) {
 			$allowed = 1;
 		}
-		$this->purge();
-		$count = $this->find('count', array( 'conditions' => compact('key') ));
+		register_shutdown_function(function() {
+			$this->purge();
+		});
+		$count = $this->find('count', ['conditions' => [
+			'key' => $key,
+			'expire_epoch >=' => time(),
+		]]);
 		return ($count <= $allowed);
 	}
 
@@ -151,17 +156,13 @@ class Throttle extends AppModel {
 
 	/**
 	 * Remove all "expired" records from the table
-	 * (raw SQL because it's faster than deleteAll() and this is called a lot)
 	 *
-	 * NOTE: called in $this->check()
+	 * NOTE: check() registers this to be run on shutdown
 	 *
 	 * @return int $affectedRows
 	 */
 	public function purge() {
-		$this->query(sprintf('DELETE FROM `%s` WHERE `expire_epoch` < "%s"',
-			$this->useTable,
-			time()
-		));
+		$this->deleteAll(['expire_epoch <' => time()], true, true);
 		return $this->getAffectedRows();
 	}
 

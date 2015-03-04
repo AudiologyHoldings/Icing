@@ -144,7 +144,7 @@ class IcingVersion extends IcingAppModel {
 	public function cleanUpMinorVersions() {
 		return $this->deleteAll(array(
 			'IcingVersion.is_minor_version' => true
-		));
+		), true, true);
 	}
 
 	/**

@@ -46,6 +46,13 @@ class MysqlExtended extends Mysql {
 	];
 
 	/**
+	 * Config for debug logging
+	 *
+	 * @var boolean
+	 */
+	public $debugging = false;
+
+	/**
 	 * Customized: more options/types
 	 *
 	 * Converts database-layer column types to basic types
@@ -180,17 +187,23 @@ class MysqlExtended extends Mysql {
 	public function tryExecuteAgain($e, $sql, $options, $params) {
 		if (!$this->shouldWeExecuteAgain($e)) {
 			$this->tryExecuteAgainUnsetRepeat();
-			$this->log('MysqlExtended: Did not retry query THROWING: ' . $sql);
+			if ($this->debugging) {
+				$this->log('MysqlExtended: Did not retry query THROWING: ' . $sql, 'debug');
+			}
 			throw $e;
 		}
+
 		$this->tryExecuteAgainSleep($e);
 		$this->tryExecuteAgainAddRepeat($e);
 
-		$this->log('MysqlExtended: Attempting to retry query: ' . $sql);
-		$return = $this->execute($sql, $options, $params);
-		$this->log('MysqlExtended: Successful retry of query: ' . $sql);
+		if ($this->debugging) {
+			$this->log('MysqlExtended: Attempting to retry query: ' . $sql, 'debug');
+			$return = $this->execute($sql, $options, $params);
+			$this->log('MysqlExtended: Successful retry of query: ' . $sql, 'debug');
+			return $return;
+		}
 
-		return $return;
+		return $this->execute($sql, $options, $params);
 	}
 
 	/**

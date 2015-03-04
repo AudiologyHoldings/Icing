@@ -123,7 +123,7 @@ class Throttle extends AppModel {
 		if (empty($allowed)) {
 			$allowed = 1;
 		}
-		register_shutdown_function(function() {
+		$this->register_shutdown_function_safe_for_tests(function() {
 			$this->purge();
 		});
 		$count = $this->find('count', ['conditions' => [
@@ -159,11 +159,27 @@ class Throttle extends AppModel {
 	 *
 	 * NOTE: check() registers this to be run on shutdown
 	 *
-	 * @return int $affectedRows
+	 * @return bool success
 	 */
 	public function purge() {
-		$this->deleteAll(['expire_epoch <' => time()], true, true);
-		return $this->getAffectedRows();
+		return $this->deleteAll(['expire_epoch <' => time()], true, true);
+	}
+
+	/**
+	 * Register shutdown function is used to not make the user wait for '->purge()' to run.
+	 * However, in unit testing, register shutdown function makes purge() run too late.
+	 *
+	 * This will work like register_shutdown_function unless we are in unit tests or the cli,
+	 * in which case the function will just be run immediately.
+	 *
+	 * @param closure $function_to_run
+	 * @return whatever is returned by the closure
+	 **/
+	public function register_shutdown_function_safe_for_tests($function) {
+		if ($this->useDbConfig == 'test' || Configure::read('isshell')) {
+			return $function();
+		}
+		return register_shutdown_function($function);
 	}
 
 }

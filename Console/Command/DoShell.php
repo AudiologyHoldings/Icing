@@ -158,6 +158,9 @@ class DoShell extends AppShell {
 			$this->out("Validation Errors: ".json_encode($Model->validationErrors));
 		}
 		$this->out();
+		// CakePHP 2.x will provide an exit code of '1' if the function's $response is === false.
+		// Otherwise it will provide an exit code of '0'.
+		return $response;
 	}
 
 	/**

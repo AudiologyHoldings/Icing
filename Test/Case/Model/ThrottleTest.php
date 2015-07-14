@@ -127,7 +127,7 @@ class ThrottleTest extends CakeTestCase {
 		$this->Throttle->create(false);
 		$this->Throttle->save(array('key' => 'b', 'expire_epoch' => time() + 5));
 		$this->assertEqual(5, $this->Throttle->find('count'));
-		$this->assertEqual(2, $this->Throttle->purge());
+		$this->assertEqual(true, $this->Throttle->purge());
 		$this->assertEqual(3, $this->Throttle->find('count'));
 	}
 

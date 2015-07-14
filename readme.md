@@ -4,6 +4,11 @@
 
 Portable Package of Utilities for CakePHP
 
+# Requirements
+
+* Php 5.4 or later
+* CakePHP 2.x
+
 # Helpers
 
 * CsvHelper

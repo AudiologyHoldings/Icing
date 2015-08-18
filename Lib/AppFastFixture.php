@@ -82,6 +82,8 @@ class AppFastFixture extends TableCopyTestFixture {
 		//   it will be truncated and populated with fixture data
 		//   set to false to disable
 		'sourceConfig' => 'test_seed',
+		// auto-set sourceConfig to false if filtering
+		'sourceConfigAutoFalseOnFilter' => true,
 		// fixture name template, used for loading via FixtureManager
 		//   sprintf($fixtureName, Inflector::underscore($this->name))
 		//   default: sprintf("app.%s", "my_post")
@@ -117,6 +119,13 @@ class AppFastFixture extends TableCopyTestFixture {
 			}
 			if (isset($parentVars['options'])) {
 				$this->options = array_merge($this->options, $parentVars['options']);
+			}
+		}
+
+		// auto-set sourceConfig to false if filtering
+		if ($this->options['sourceConfigAutoFalseOnFilter'] && !empty($_SERVER['argv'])) {
+			if (in_array('--filter', $_SERVER['argv'])) {
+				$this->options['sourceConfig'] = false;
 			}
 		}
 

@@ -71,6 +71,7 @@ class ShareHelper extends AppHelper {
 			'linkOptions' => array(
 				'target' => '_blank',
 				'escape' => false,
+				'rel' => 'nofollow',
 				),
 			'url' => $this->defaultUrl(),
 			'text' => '',
@@ -99,6 +100,7 @@ class ShareHelper extends AppHelper {
 			'linkOptions' => array(
 				'target' => '_blank',
 				'escape' => false,
+				'rel' => 'nofollow',
 				),
 			'url' => $this->defaultUrl(),
 		), (array) $options);
@@ -125,6 +127,7 @@ class ShareHelper extends AppHelper {
 			'linkOptions' => array(
 				'target' => '_blank',
 				'escape' => false,
+				'rel' => 'nofollow',
 			),
 			'url' => $this->defaultUrl(),
 		), (array) $options);
@@ -153,6 +156,7 @@ class ShareHelper extends AppHelper {
 			'linkOptions' => array(
 				'target' => '_blank',
 				'escape' => false,
+				'rel' => 'nofollow',
 			),
 			'url' => $this->defaultUrl(),
 			'image' => '',

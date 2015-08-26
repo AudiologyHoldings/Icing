@@ -196,6 +196,10 @@ class AppFastFixture extends TableCopyTestFixture {
  */
 	public function insert($db) {
 		if (!$this->isSeeded()) {
+			if (empty($this->records)) {
+				// no records, no need to seed
+				return true;
+			}
 			// not seeded, just use parent
 			return parent::insert($db);
 		}

@@ -3,7 +3,7 @@
  * Fixture Update Shell
  *
  * Attempts to intelligently update your fixtures to
- * - force it to use Icing.AppTestFixture
+ * - force it to use Icing.AppFastFixture
  * '- update the $fields to always match the current database schema
  *      (doesn't touch records, or any other config)
  * - run Icing.PhpTidy against the fixutre, to correct formatting
@@ -53,7 +53,7 @@ class FixtureUpdateShell extends Shell {
 		$this->hr();
 		$this->out();
 		$this->out('Attempts to intelligently update your fixtures to');
-		$this->out('- force it to use Icing.AppTestFixture');
+		$this->out('- force it to use Icing.AppFastFixture');
 		$this->out('- update the $fields to always match the current database schema');
 		$this->out('  (doesn\'t touch records, or any other config)');
 		$this->out('- run Icing.PhpTidy against the fixutre, to correct formatting');
@@ -127,7 +127,7 @@ class FixtureUpdateShell extends Shell {
 
 	/**
 	 * Read in a fixture file and update it
-	 * - force it to use Icing.AppTestFixture
+	 * - force it to use Icing.AppFastFixture
 	 * - update the $fields to always match what's on the current database
 	 * - run Icing.PhpTidy against it
 	 *
@@ -140,16 +140,16 @@ class FixtureUpdateShell extends Shell {
 			return true;
 		}
 		// cleanup the basics
-		$appUses = "App::uses('AppTestFixture', 'Icing.Lib');";
+		$appUses = "App::uses('AppFastFixture', 'Icing.Lib');";
 		$body = file_get_contents($path);
 		// replace old approaches
-		$body = preg_replace('#App::[^\)]*AppTestFixture[^\)]*\);#', $appUses, $body);
+		$body = preg_replace('#App::[^\)]*AppFastFixture[^\)]*\);#', $appUses, $body);
 		// inject App::uses()
 		if (strpos($body, $appUses) === false) {
 			$body = preg_replace('#(class .* extends )#', $appUses . "\n$1", $body);
 		}
 		// replace CakeTestFixture
-		$body = str_replace('CakeTestFixture', 'AppTestFixture', $body);
+		$body = str_replace('CakeTestFixture', 'AppFastFixture', $body);
 		// remove closing php
 		$body = str_replace('?>' , '', $body);
 		// TODO: replace the $fields array with details from the "current" schema

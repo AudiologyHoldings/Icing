@@ -40,7 +40,8 @@ Portable Package of Utilities for CakePHP
 
 * DatabaseCacheEngine - Cache Engine in your DB
 * AppTestCase - extend CakeTestCase
-* AppTestFixture - extend AppTestFixture (flexible records)
+* AppFastFixture - extend TableCopyTestFixture & AppTestFixture (fast & flexible records)
+* AppTestFixture - extend CakeTestFixture (flexible records)
 * Re
 * Pluck
 * Base62
@@ -427,14 +428,75 @@ Easy way to load fixture automatically and in groups.  Look at the file for more
 * `assertValidationErrors` - special test for validation errors
 * `loadFixtureGroup` - loads a Config'ed set of standard grouped fixtures
 
-## AppTestFixture
+## AppFastFixture & AppTestFixture
 
-Fixes missing fields of records with bogus data so you don't have to worry about it. Look at the file for more usage examples
+Fixtures suck.
 
-	App::uses('AppTestFixture', 'Icing.Lib');
-	class UserFixture extends AppTestFixture {
-		...
-	}
+Here's a couple of better classes
+using some of the best of other tools for making them easier and faster....
+
+Assumptions:
+
+* You are still going to put the fields and records onto the fixture
+* You make your App's Fixture extend AppFastFixture
+* You have a `test` config in app/Config/database.php
+* You have a `test_seed` config in app/Config/database.php
+  it should NOT be the same as your production database
+  it should NOT be the same as your test database
+  it will be truncated and populated with fixture data
+
+**AppFastFixture:**
+
+* Will cleanup records to match fields (see AppTestFixture)
+* Will auto-populate the `test_seed` table on initial run
+* Will remove fields and records at runtime, so TableCopyTestFixture uses
+  the built in, faster "copy from MySQL" functionality
+
+
+**AppTestFixture:**
+
+A collection of tools to facilitate MUCH simpler setups for fixtures
+
+* records do not have to include all fields (empty values based on type)
+* records fields do not have to be in the correct order
+* records date and datetime fields support any strtotime() parseable value
+* all prep work done at time of __construct()
+
+[TableCopyTestFixture:](https://github.com/lorenzo/cakephp-fixturize#loading-your-fixtures-directly-from-a-database)
+
+We use the excellent [lorenzo/cakephp-fixturize](https://github.com/lorenzo/cakephp-fixturize) Plugin to make your fixtures fast
+
+* it supports checksum to only re-insert records if the table has changed (huge!)
+* it supports create from and insert from a "seed" database (much faster)
+
+**Usage:**
+
+Just extend with wither `AppFastFixture` or `AppTestFixture` *(maintained for legacy support)*
+
+``` php
+App::uses('AppFastFixture', 'Icing.Lib');
+class UserFixture extends AppFastFixture {
+
+	// OPTIONALY customize these default options
+	$this->options = array(
+		// fix records to have all the known fields, and only known fields
+		'fix' => true,
+		// reparse entered dates = date($format, strtotime($value))
+		'dates' => true,
+		// which db config should you use?
+		//   this needs to be setup in app/Config/database.php
+		//   set to false to disable
+		'sourceConfig' => 'test_seed',
+		// fixture name template, used for loading via FixtureManager
+		//   sprintf($fixtureName, Inflector::underscore($this->name))
+		//   default: sprintf("app.%s", "my_post")
+		//   eg: app.my_post
+		//   eg: plugin.foobar.foobar_comment
+		'fixtureName' => 'app.%s',
+	);
+	...
+}
+```
 
 ## Re
 

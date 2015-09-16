@@ -11,8 +11,8 @@ class ThrottleFixture extends CakeTestFixture {
 		'expire_epoch' => array('type' => 'integer', 'null' => false, 'default' => '0', 'length' => 12),
 		'indexes' => array(
 			'PRIMARY' => array('column' => 'id', 'unique' => 1),
-			'type' => array('column' => array('key', 'expire_epoch'), 'unique' => 0),
 			'type' => array('column' => array('expire_epoch'), 'unique' => 0),
+			'type2' => array('column' => array('key', 'expire_epoch'), 'unique' => 0),
 		),
 		'tableParameters' => array('charset' => 'utf8', 'collate' => 'utf8_general_ci', 'engine' => 'MEMORY')
 	);

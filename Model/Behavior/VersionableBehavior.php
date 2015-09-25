@@ -343,4 +343,85 @@ class VersionableBehavior extends ModelBehavior {
 		return $this->IcingVersion;
 	}
 
+	/**
+	 * Extend a single record from any model, with all of it's IcingVersion
+	 * inside of the alias='Version'
+	 *
+	 * @param Model $Model
+	 * @param array $record a single full record from your Model
+	 * @return array $record now with Version as a hasMany
+	 */
+	public function extendWithVersions(Model $Model, $record) {
+		$record['Version'] = $this->getVersionsForRecord($Model, $record);
+		return $record;
+	}
+
+	/**
+	 * Get the IcingVersion history (full)
+	 * for any single record from this model.
+	 *
+	 * @param Model $Model
+	 * @param array $record a single full record from your Model
+	 * @return array $versions
+	 */
+	public function getVersionsForRecord(Model $Model, $record) {
+		if (!empty($record[$Model->alias][$Model->primaryKey])) {
+			$model_id = $record[$Model->alias][$Model->primaryKey];
+		}
+		if (!empty($record[$Model->primaryKey])) {
+			$model_id = $record[$Model->primaryKey];
+		}
+		if (empty($model_id)) {
+			return array();
+		}
+		return $this->getVersionsForId($Model, $model_id);
+	}
+
+	/**
+	 * Get the IcingVersion history (full)
+	 * for any single record from this model.
+	 *
+	 * @param Model $Model
+	 * @param mixed $model_id an id for a single record from your Model
+	 * @return array $versions
+	 */
+	public function getVersionsForId(Model $Model, $model_id=null) {
+		if (empty($model_id)) {
+			return array();
+		}
+		$versions = $this->IcingVersion->find(
+			'all',
+			array(
+				'conditions' => array(
+					'model' => $Model->alias,
+					'model_id' => $model_id,
+				),
+				'order' => array("IcingVersion.created DESC"),
+			)
+		);
+		// cleanup and simplify version data
+		foreach (array_keys($versions) as $i) {
+			$versions[$i] = $this->_expandVersionData($versions[$i]);
+		}
+		return $versions;
+	}
+
+	/**
+	 * Re-format IcingVersion. data to a more-useful dataset
+	 * All the data from .json is parsed and used as the root node
+	 * IcingVersion data (excluding .json) is appended
+	 *
+	 * @param array $version
+	 * @param array $dataWithVersion
+	 */
+	private function _expandVersionData($version) {
+		if (empty($version['IcingVersion']['json'])) {
+			return $version;
+		}
+		$data = @json_decode($version['IcingVersion']['json'], true);
+		unset($version['IcingVersion']['json']);
+		$data['IcingVersion'] = $version['IcingVersion'];
+		return $data;
+	}
+
 }

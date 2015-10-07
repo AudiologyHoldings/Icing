@@ -63,16 +63,16 @@ class Throttle extends AppModel {
 		parent::__construct($id, $table, $ds);
 		$this->validate = array(
 			'key' => array(
-				'notempty' => array(
-					'rule' => array('notempty'),
+				'notBlank' => array(
+					'rule' => array('notBlank'),
 					'required' => true,
 					'allowEmpty' => false,
 					'message' => __('Please enter a key', true)
 				),
 			),
 			'expire_epoch' => array(
-				'notempty' => array(
-					'rule' => array('notempty'),
+				'notBlank' => array(
+					'rule' => array('notBlank'),
 					'required' => true,
 					'allowEmpty' => false,
 					'message' => __('Please enter an Expires as an Epoch in the current server timezone', true)

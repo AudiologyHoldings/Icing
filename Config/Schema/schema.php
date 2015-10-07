@@ -1,4 +1,4 @@
-<?php 
+<?php
 class IcingSchema extends CakeSchema {
 
 	public function before($event = array()) {
@@ -48,7 +48,8 @@ class IcingSchema extends CakeSchema {
 		'expire_epoch' => array('type' => 'integer', 'null' => false, 'default' => '0', 'length' => 12, 'key' => 'index'),
 		'indexes' => array(
 			'PRIMARY' => array('column' => 'id', 'unique' => 1),
-			'type' => array('column' => 'expire_epoch', 'unique' => 0)
+			'type' => array('column' => 'expire_epoch', 'unique' => 0),
+			'type2' => array('column' => array('key', 'expire_epoch'), 'unique' => 0),
 		),
 		'tableParameters' => array('charset' => 'utf8', 'collate' => 'utf8_general_ci', 'engine' => 'MEMORY')
 	);

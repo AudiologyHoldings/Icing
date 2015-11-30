@@ -164,8 +164,8 @@ class ShareHelper extends AppHelper {
 		), (array) $options);
 
 		$data = array(
-			'media' => $options['url'],
-			'url' => $options['image'],
+			'media' => $options['image'],
+			'url' => $options['url'],
 			'description' => $options['text']
 		);
 		$url = $this->buildShareUrl('pinterest', $data);

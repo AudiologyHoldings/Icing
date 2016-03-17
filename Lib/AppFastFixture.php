@@ -323,7 +323,9 @@ class AppFastFixture extends TableCopyTestFixture {
 			if (array_key_exists('scopes_backup', $config)) {
 				continue;
 			}
-			$config['scopes_backup'] = $config['scopes'];
+			if (!empty($config['scopes'])) {
+				$config['scopes_backup'] = $config['scopes'];
+			}
 			$config['scopes'][] = 'scoped';
 			$logger->config($config);
 		}

@@ -64,7 +64,7 @@ class Throttle extends AppModel {
 		$this->validate = array(
 			'key' => array(
 				'notBlank' => array(
-					'rule' => array('notBlank'),
+					'rule' => array('notEmpty'),
 					'required' => true,
 					'allowEmpty' => false,
 					'message' => __('Please enter a key', true)
@@ -72,7 +72,7 @@ class Throttle extends AppModel {
 			),
 			'expire_epoch' => array(
 				'notBlank' => array(
-					'rule' => array('notBlank'),
+					'rule' => array('notEmpty'),
 					'required' => true,
 					'allowEmpty' => false,
 					'message' => __('Please enter an Expires as an Epoch in the current server timezone', true)

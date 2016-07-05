@@ -42,7 +42,7 @@ class MysqlExtended extends Mysql {
 	 */
 	public $_tryExecuteAgainConfig = [
 		'limit' => 3,     // retry 3 times (change to 0 to disable retrys)
-		'usleep' => 1000, // 1 ms
+		'usleep' => 2000, // 2 ms
 	];
 
 	/**

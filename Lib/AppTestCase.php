@@ -499,4 +499,21 @@ class AppTestCase extends CakeTestCase {
 		Router::parse('/');
 		return true;
 	}
+
+
+	/**
+	 * @param string      $string  The UUID we are trying to test against
+	 * @param string|null Optional message to pass to the error output in case of failure
+	 */
+	public function assertUuid($string, $message = 'String is not a valid UUID') {
+		if (empty( $string )) {
+			$message = 'The UUID was empty';
+
+			return parent::assertTrue(false, $message);
+		}
+
+		preg_match('/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/i', $string, $matches);
+
+		return parent::assertNotEmpty($matches, $message);
+	}
 }

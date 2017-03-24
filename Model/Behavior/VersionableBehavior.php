@@ -278,7 +278,9 @@ class VersionableBehavior extends ModelBehavior {
 			'is_minor_version' => false,
 		);
 
-		if (method_exists($Model, 'getUserId')) {
+		if (AuthComponent::user('is_clinic')) {
+			// Do nothing.  User ID stays as 0.
+		} else if (method_exists($Model, 'getUserId')) {
 			$Model->versionData['user_id'] = $Model->getUserId();
 		} elseif (class_exists('AuthComponent') && class_exists('CakeSession') && CakeSession::started()) {
 			$Model->versionData['user_id'] = AuthComponent::user('id');

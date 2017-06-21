@@ -23,7 +23,7 @@ class ShareHelper extends AppHelper {
 	* Map of social services to links
 	*/
 	public $baseUrls = array(
-		'twitter' => 'https://twitter.com/share?',
+		'twitter' => 'https://twitter.com/intent/tweet?',
 		'googleplus' => 'https://plus.google.com/share?',
 		'facebook' => 'https://www.facebook.com/sharer/sharer.php?',
 		'pinterest' => 'https://www.pinterest.com/pin/create/button/?',

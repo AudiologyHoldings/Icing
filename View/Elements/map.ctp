@@ -30,7 +30,7 @@ $center = isset($center) ? $center : array('lat' => 0, 'lon' => 0);
 	$json_points = json_encode($points);
 	$zoom = isset($zoom) ? $zoom : 14;
 	?>
-	<?php echo $this->Html->script('http://maps.google.com/maps/api/js?sensor=false'); ?>
+	<?php echo $this->Html->script('https://maps.google.com/maps/api/js?sensor=false'); ?>
 	
 	<script type="text/javascript">
 	function icingLoadMap(){

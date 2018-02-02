@@ -29,8 +29,12 @@ $center = isset($center) ? $center : array('lat' => 0, 'lon' => 0);
 	$points = isset($points) ? $points : array(array('lat' => 0, 'lon' => 0, 'info' => '', 'title' => 'Title'));
 	$json_points = json_encode($points);
 	$zoom = isset($zoom) ? $zoom : 14;
+	$mapUrl = "https://maps.google.com/maps/api/js?sensor=false";
+	if (Configure::read('googleMapsJsKey')) {
+		$mapUrl .= '&key=' . Configure::read('googleMapsJsKey');
+	}
 	?>
-	<?php echo $this->Html->script('https://maps.google.com/maps/api/js?sensor=false'); ?>
+	<?php echo $this->Html->script($mapUrl); ?>
 	
 	<script type="text/javascript">
 	function icingLoadMap(){

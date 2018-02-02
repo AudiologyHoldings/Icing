@@ -89,7 +89,7 @@ Class TokeninputHelper extends AppHelper {
 		$defaults = array(
 			'type' => 'text',
 			'data-provide' => 'tokeninput',
-			'id' => 'tokeninput' . String::uuid(),
+			'id' => 'tokeninput' . CakeText::uuid(),
 			// this is the url to the source for autocomplete
 			'source' => $this->Html->url(array('action' => 'tokeninput', 'as.json')),
 			// pass in a simple array(array(id=>__, name=>__))

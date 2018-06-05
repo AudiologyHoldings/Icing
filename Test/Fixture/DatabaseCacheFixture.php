@@ -29,17 +29,17 @@ class DatabaseCacheFixture extends CakeTestFixture {
 		array(
 			'key' => 'mykey1',
 			'value' => 'here is my value',
-			'duration' => 99999999999999
+			'duration' => 99999
 		),
 		array(
 			'key' => 'mykey2',
 			'value' => '[1,2,3,4]',
-			'duration' => 99999999999999
+			'duration' => 99999
 		),
 		array(
 			'key' => 'mykey3',
 			'value' => '{"a":"b"}',
-			'duration' => 99999999999999
+			'duration' => 99999
 		),
 	);
 

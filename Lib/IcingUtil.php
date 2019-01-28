@@ -1,6 +1,6 @@
 <?php
 App::uses('Xml', 'Utility');
-class IcingUtil extends Object {
+class IcingUtil extends CakeObject {
 
 	/**
 	 * Returns the server URL

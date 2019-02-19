@@ -30,12 +30,12 @@ class IcingVersion extends IcingAppModel {
 		),
 		'model' => array(
 			'notBlank' => array(
-				'rule' => array('notEmpty'),
+				'rule' => array('notBlank'),
 			),
 		),
 		'json' => array(
 			'notBlank' => array(
-				'rule' => array('notEmpty'),
+				'rule' => array('notBlank'),
 			),
 		),
 		'is_delete' => array(

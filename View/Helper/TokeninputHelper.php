@@ -89,7 +89,7 @@ Class TokeninputHelper extends AppHelper {
 		$defaults = array(
 			'type' => 'text',
 			'data-provide' => 'tokeninput',
-			'id' => 'tokeninput',
+			'id' => 'tokeninput' . CakeText::uuid(),
 			// this is the url to the source for autocomplete
 			'source' => $this->Html->url(array('action' => 'tokeninput', 'as.json')),
 			// pass in a simple array(array(id=>__, name=>__))
@@ -98,7 +98,6 @@ Class TokeninputHelper extends AppHelper {
 			// theme, has to match with CSS linked in assets
 			'theme' => 'facebook',
 		);
-		$defaults['id'] .= version_compare(Configure::version(), '2.7', '>=') ? CakeText::uuid() : String::uuid();
 		if (is_string($options)) {
 			$options = array('source' => $options, 'prePopulate' => $prePopulate);
 		}

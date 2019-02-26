@@ -64,11 +64,10 @@ Class TypeaheadHelper extends AppHelper {
 		$defaults = array(
 			'type' => 'text',
 			'data-provide' => 'typeahead',
-			'id' => 'typeahead',
+			'id' => 'typeahead' . CakeText::uuid(),
 			// this is the url to the source for autocomplete
 			'source' => $this->Html->url(array('action' => 'typeahead', 'as.json')),
 		);
-		$defaults['id'] .= version_compare(Configure::version(), '2.7', '>=') ? CakeText::uuid() : String::uuid();
 		if (is_string($options)) {
 			$options = array('source' => $options);
 		}

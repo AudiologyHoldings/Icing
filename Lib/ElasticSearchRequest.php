@@ -89,7 +89,7 @@ class ElasticSearchRequest extends HttpSocket {
 		}
 		if (!empty($request['fields'])) {
 			// 'fields' may be an array
-			$requestBody['fields'] = is_array($request['fields']) ? array_values($request['fields']) : explode(',', $request['fields']);
+			$requestBody['_source'] = is_array($request['fields']) ? array_values($request['fields']) : explode(',', $request['fields']);
 		}
 
 		$request['body'] = $this->asJson($requestBody);

@@ -454,7 +454,7 @@ class ElasticSearchRequest extends HttpSocket {
 		// validate the request
 		$data = array_merge( (array) @json_decode($response->body, true), array('_code' => $response->code));
 		if (!empty($data['error']) || !in_array($response->code, array(200, 201))) {
-			$error = (empty($data['error']) ? 'unknown error' : $data['error']);
+			$error = (empty($data['error']['type']) ? 'unknown error' : $data['error']['type']);
 			if (preg_match('#IndexMissingException\[\[(.+)\] missing\]#', $error, $match)) {
 				$index = $match[1];
 				if ($this->createIndex($index, $request) && empty($this->retrying)) {
@@ -463,7 +463,7 @@ class ElasticSearchRequest extends HttpSocket {
 					return $this->request($request);
 				}
 			}
-			if (strpos($error, 'IndexAlreadyExistsException') !== false) {
+			if (strpos($error, 'IndexAlreadyExistsException') !== false || strpos($error, 'resource_already_exists_exception') !== false) {
 				return array('message' => 'IndexAlreadyExistsException', '_code' => 200);
 			}
 			if (!empty($response->code)) {

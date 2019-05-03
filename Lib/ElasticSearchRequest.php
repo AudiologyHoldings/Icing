@@ -467,6 +467,7 @@ class ElasticSearchRequest extends HttpSocket {
 				return array('message' => 'IndexAlreadyExistsException', '_code' => 200);
 			}
 			if (!empty($response->code)) {
+				throw new ElasticSearchRequestException(var_dump($data));
 				$error = str_replace(array('[', ']'), ' ', $error);
 				throw new ElasticSearchRequestException("Request failed, got a response code of {$response->code} {$error}");
 			}

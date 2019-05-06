@@ -591,6 +591,7 @@ class ElasticSearchRequest extends HttpSocket {
 		if (empty($request['uri']['path'])) {
 			$path = '/' . $this->_config['index'];
 			if (!empty($this->_config['table'])) {
+				$path .= '_' . $this->_config['table']; ##ES6 removing type mapping, need to make new index for the table
 				$path .= '/' . $this->_config['table'];
 			} elseif (!empty($request['table'])) {
 				$path .= '/' . $request['table'];

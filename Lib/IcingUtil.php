@@ -1,6 +1,6 @@
 <?php
 App::uses('Xml', 'Utility');
-class IcingUtil extends Object {
+class IcingUtil extends CakeObject {
 
 	/**
 	 * Returns the server URL
@@ -225,7 +225,7 @@ class IcingUtil extends Object {
 		$returnArray = array();
 		foreach ( $arrayNested as $key => $val ) {
 			if (is_array($val)) {
-				$returnArray = set::merge($returnArray,$val);
+				$returnArray = Set::merge($returnArray,$val);
 			} else {
 				$returnArray[$key] = $val;
 			}

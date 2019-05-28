@@ -89,7 +89,7 @@ class ElasticSearchRequest extends HttpSocket {
 		}
 		if (!empty($request['fields'])) {
 			// 'fields' may be an array
-			$requestBody['fields'] = is_array($request['fields']) ? array_values($request['fields']) : explode(',', $request['fields']);
+			$requestBody['_source'] = is_array($request['fields']) ? array_values($request['fields']) : explode(',', $request['fields']);
 		}
 
 		$request['body'] = $this->asJson($requestBody);
@@ -454,7 +454,7 @@ class ElasticSearchRequest extends HttpSocket {
 		// validate the request
 		$data = array_merge( (array) @json_decode($response->body, true), array('_code' => $response->code));
 		if (!empty($data['error']) || !in_array($response->code, array(200, 201))) {
-			$error = (empty($data['error']) ? 'unknown error' : $data['error']);
+			$error = (empty($data['error']['type']) ? 'unknown error' : $data['error']['type']);
 			if (preg_match('#IndexMissingException\[\[(.+)\] missing\]#', $error, $match)) {
 				$index = $match[1];
 				if ($this->createIndex($index, $request) && empty($this->retrying)) {
@@ -463,7 +463,7 @@ class ElasticSearchRequest extends HttpSocket {
 					return $this->request($request);
 				}
 			}
-			if (strpos($error, 'IndexAlreadyExistsException') !== false) {
+			if (strpos($error, 'IndexAlreadyExistsException') !== false || strpos($error, 'resource_already_exists_exception') !== false) {
 				return array('message' => 'IndexAlreadyExistsException', '_code' => 200);
 			}
 			if (!empty($response->code)) {
@@ -591,6 +591,7 @@ class ElasticSearchRequest extends HttpSocket {
 		if (empty($request['uri']['path'])) {
 			$path = '/' . $this->_config['index'];
 			if (!empty($this->_config['table'])) {
+				$path .= '_' . $this->_config['table']; ##ES6 removing type mapping, need to make new index for the table
 				$path .= '/' . $this->_config['table'];
 			} elseif (!empty($request['table'])) {
 				$path .= '/' . $request['table'];

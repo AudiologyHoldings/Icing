@@ -30,12 +30,12 @@ class IcingVersion extends IcingAppModel {
 		),
 		'model' => array(
 			'notBlank' => array(
-				'rule' => array('notEmpty'),
+				'rule' => array('notBlank'),
 			),
 		),
 		'json' => array(
 			'notBlank' => array(
-				'rule' => array('notEmpty'),
+				'rule' => array('notBlank'),
 			),
 		),
 		'is_delete' => array(
@@ -44,6 +44,15 @@ class IcingVersion extends IcingAppModel {
 			),
 		),
 	);
+
+	public function __construct($id = false, $table = null, $ds = null)
+	{
+		parent::__construct($id, $table, $ds);
+
+		if (version_compare(Configure::version(), '2.7', '>=')) {
+			$this->validate['model']['notBlank']['rule'] = $this->validate['json']['notBlank']['rule'] = ['notBlank'];
+		}
+	}
 
 	/**
 	 * Finds the version back from curent based by number count

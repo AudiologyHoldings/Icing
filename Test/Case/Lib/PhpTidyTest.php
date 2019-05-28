@@ -54,7 +54,7 @@ class PhpTidyTest extends CakeTestCase {
 	public function testPhpTidyString_formatting() {
 		// pass in a sting of PHP code to tidy up
 		$input = '<?php
-		Class Testerizer extends Object {
+		Class Testerizer extends CakeObject {
 			/**
 			* bad docblock
 			* @param string $a
@@ -67,7 +67,7 @@ class PhpTidyTest extends CakeTestCase {
 			}
 		?>';
 		$expect = '<?php' . "\n" .
-		'class Testerizer extends Object {' . "\n" .
+		'class Testerizer extends CakeObject {' . "\n" .
 		'	/**' . "\n" .
 		'	 * bad docblock' . "\n" .
 		'	 *' . "\n" .

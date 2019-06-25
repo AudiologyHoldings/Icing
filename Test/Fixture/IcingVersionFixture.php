@@ -19,11 +19,20 @@ class IcingVersionFixture extends CakeTestFixture {
 		'created' => array('type' => 'datetime', 'null' => true, 'default' => null),
 		'url' => array('type' => 'string', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'ip' => array('type' => 'string', 'null' => true, 'default' => null, 'length' => 50, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
-		'is_delete' => array('type' => 'boolean', 'null' => false, 'default' => null),
+		'is_soft_delete' => array('type' => 'boolean', 'null' => false, 'default' => null),
+		'is_delete' => array('type' => 'boolean', 'null' => false, 'default' => '0', 'key' => 'index', 'comment' => 'true if the model was deleted.'),
+		'is_soft_delete' => array('type' => 'boolean', 'null' => false, 'default' => '0', 'key' => 'index', 'comment' => 'true if version is soft deleted.'),
 		'is_minor_version' => array('type' => 'boolean', 'null' => false, 'default' => null, 'comment' => 'true if saved within x timeframe of previous version'),
 		'indexes' => array(
 			'PRIMARY' => array('column' => 'id', 'unique' => 1),
-			'model_id' => array('column' => array('model_id', 'model'), 'unique' => 0)
+			'model_id' => array('column' => array('model_id', 'model'), 'unique' => 0),
+			'created' => array('column' => 'created', 'unique' => 0),
+			'model' => array('column' => 'model', 'unique' => 0),
+			'model_id_2' => array('column' => 'model_id', 'unique' => 0),
+			'user_id' => array('column' => 'user_id', 'unique' => 0),
+			'is_soft_delete' => array('column' => 'is_soft_delete', 'unique' => 0),
+			'is_delete' => array('column' => 'is_delete', 'unique' => 0),
+			'is_minor_version' => array('column' => 'is_minor_version', 'unique' => 0),
 		),
 		'tableParameters' => array('charset' => 'utf8', 'collate' => 'utf8_general_ci', 'engine' => 'MyISAM')
 	);

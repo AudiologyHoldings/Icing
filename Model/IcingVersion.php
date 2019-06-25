@@ -45,15 +45,6 @@ class IcingVersion extends IcingAppModel {
 		),
 	);
 
-	public function __construct($id = false, $table = null, $ds = null)
-	{
-		parent::__construct($id, $table, $ds);
-
-		if (version_compare(Configure::version(), '2.7', '>=')) {
-			$this->validate['model']['notBlank']['rule'] = $this->validate['json']['notBlank']['rule'] = ['notBlank'];
-		}
-	}
-
 	/**
 	 * Finds the version back from curent based by number count
 	 *
@@ -88,6 +79,59 @@ class IcingVersion extends IcingAppModel {
 			'is_soft_delete' => 1,
 			'modified' => false, // don't update modified
 		];
+
+		$this->create(false);
+		return $this->save($data, [
+			'callbacks' => false,
+			'validate' => false,
+			'counterCache' => false,
+		]);
+	}
+
+	/**
+	 * Soft deleting all inputed records
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool|array false on failed save, array of new version.
+	 */
+	public function softDeleteAll($ids) {
+		return $this->updateAll(['is_soft_delete' => true], ['id' => $ids]);
+	}
+
+	/**
+	 * Deleting the record
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool
+	 */
+	public function hardDelete($id) {
+		return $this->delete($id);
+	}
+
+	/**
+	 * Hard deleting all inputed records
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool
+	 */
+	public function hardDeleteAll($ids) {
+		return $this->deleteAll(['id' => $ids]);
+	}
+
+	/**
+	 * Set the minor version to true on the IcingVersion
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool|array false on failed save, array of new version.
+	 */
+	public function minorVersion($id) {
+		$data = [
+			'id' => $id,
+			'is_minor_version' => 1,
+			'modified' => false, // don't update modified
+		];
+
+		$this->create(false);
 		return $this->save($data, [
 			'callbacks' => false,
 			'validate' => false,
@@ -216,18 +260,21 @@ class IcingVersion extends IcingAppModel {
 		//   (limited by settings - versions count)
 		if (!empty($settings['versions']) && is_numeric($settings['versions']) && $settings['versions'] > 0) {
 			$count = $this->find('count', compact('conditions'));
-			while ($count >= $settings['versions']) {
-				$oldest = $this->find('first', array(
+
+			if ($count >= $settings['versions']) {
+				$limit = $count - $settings['versions'] + 1; // removing current count minus setting (plus one to make room for this new version)
+				$versions_to_remove = $this->find('list', array(
 					'fields' => array('id'),
 					'conditions' => $conditions,
-					'order' => array("{$this->alias}.created ASC")
+					'order' => array("{$this->alias}.created ASC"),
+					'limit' => $limit,
 				));
+
 				if (isset($settings['soft_delete']) && $settings['soft_delete']) {
-					$this->softDelete($oldest[$this->alias]['id']);
+					$this->softDeleteAll($versions_to_remove);
 				} else {
-					$this->delete($oldest[$this->alias]['id']);
+					$this->hardDeleteAll($versions_to_remove);
 				}
-				$count = $this->find('count', compact('conditions'));
 			}
 		}
 
@@ -252,18 +299,11 @@ class IcingVersion extends IcingAppModel {
 
 		// check if this we should change prior version to minor_revision based on minor_timeframe from settings
 		if (empty($data['is_minor_version']) && !empty($settings['minor_timeframe'])) {
-			// find all the records which "should be minor"
-			$versions_within_timeframe = $this->find('list', array(
-				'fields' => array('id'),
-				'conditions' => array_merge($conditions, array(
-					'IcingVersion.created >=' => date("Y-m-d H:i:s", strtotime("-{$settings['minor_timeframe']} seconds", time())),
-					'IcingVersion.is_minor_version' => false,
-				)),
-			));
-			foreach ($versions_within_timeframe as $version_id) {
-				$this->id = $version_id;
-				$this->saveField('is_minor_version', true);
-			}
+			// update all the records which "should be minor"
+			$this->updateAll(['is_minor_version' => true], array_merge($conditions, array(
+				'IcingVersion.created >=' => date("Y-m-d H:i:s", strtotime("-{$settings['minor_timeframe']} seconds", time())),
+				'IcingVersion.is_minor_version' => false,
+			)));
 		}
 
 		// finally, save this record

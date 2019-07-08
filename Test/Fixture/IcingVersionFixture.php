@@ -19,7 +19,6 @@ class IcingVersionFixture extends CakeTestFixture {
 		'created' => array('type' => 'datetime', 'null' => true, 'default' => null),
 		'url' => array('type' => 'string', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'ip' => array('type' => 'string', 'null' => true, 'default' => null, 'length' => 50, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
-		'is_soft_delete' => array('type' => 'boolean', 'null' => false, 'default' => null),
 		'is_delete' => array('type' => 'boolean', 'null' => false, 'default' => '0', 'key' => 'index', 'comment' => 'true if the model was deleted.'),
 		'is_soft_delete' => array('type' => 'boolean', 'null' => false, 'default' => '0', 'key' => 'index', 'comment' => 'true if version is soft deleted.'),
 		'is_minor_version' => array('type' => 'boolean', 'null' => false, 'default' => null, 'comment' => 'true if saved within x timeframe of previous version'),

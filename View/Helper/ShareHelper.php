@@ -26,6 +26,7 @@ class ShareHelper extends AppHelper {
 		'twitter' => 'https://twitter.com/intent/tweet?',
 		'googleplus' => 'https://plus.google.com/share?',
 		'facebook' => 'https://www.facebook.com/sharer/sharer.php?',
+		'linkedin' => 'http://www.linkedin.com/shareArticle?mini=true&',
 		'pinterest' => 'https://www.pinterest.com/pin/create/button/?',
 	);
 	
@@ -136,6 +137,31 @@ class ShareHelper extends AppHelper {
 			'u' => $options['url'],
 		);
 		$url = $this->buildShareUrl('facebook', $data);
+		return $this->shareLink($options['label'], $url, $options['linkOptions']);
+	}
+	
+	/**
+	* LinkedIn share link generator
+	*
+	* @param array of options
+	* - linkOptions: array of options to pass into the link (default 'target' => '_blank', 'escape' => false)
+	* - url: string of url to share (default to $this->here)
+	* @return string link
+	*/
+	public function linkedin($options = array()) {
+		$options = array_merge(array(
+			'linkOptions' => array(
+				'target' => '_blank',
+				'escape' => false,
+				'rel' => 'nofollow',
+			),
+			'url' => $this->defaultUrl(),
+		), (array) $options);
+
+		$data = array(
+			'url' => $options['url'],
+		);
+		$url = $this->buildShareUrl('linkedin', $data);
 		return $this->shareLink($options['label'], $url, $options['linkOptions']);
 	}
 

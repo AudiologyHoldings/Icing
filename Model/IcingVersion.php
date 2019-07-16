@@ -45,15 +45,6 @@ class IcingVersion extends IcingAppModel {
 		),
 	);
 
-	public function __construct($id = false, $table = null, $ds = null)
-	{
-		parent::__construct($id, $table, $ds);
-
-		if (version_compare(Configure::version(), '2.7', '>=')) {
-			$this->validate['model']['notBlank']['rule'] = $this->validate['json']['notBlank']['rule'] = ['notBlank'];
-		}
-	}
-
 	/**
 	 * Finds the version back from curent based by number count
 	 *
@@ -77,6 +68,78 @@ class IcingVersion extends IcingAppModel {
 	}
 
 	/**
+	 * Soft delete the IcingVersion
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool|array false on failed save, array of new version.
+	 */
+	public function softDelete($id) {
+		$data = [
+			'id' => $id,
+			'is_soft_delete' => 1,
+			'modified' => false, // don't update modified
+		];
+
+		$this->create(false);
+		return $this->save($data, [
+			'callbacks' => false,
+			'validate' => false,
+			'counterCache' => false,
+		]);
+	}
+
+	/**
+	 * Soft deleting all inputed records
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool|array false on failed save, array of new version.
+	 */
+	public function softDeleteAll($ids) {
+		return $this->updateAll(['is_soft_delete' => true], ['id' => $ids]);
+	}
+
+	/**
+	 * Deleting the record
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool
+	 */
+	public function hardDelete($id) {
+		return $this->delete($id);
+	}
+
+	/**
+	 * Hard deleting all inputed records
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool
+	 */
+	public function hardDeleteAll($ids) {
+		return $this->deleteAll(['id' => $ids]);
+	}
+
+	/**
+	 * Set the minor version to true on the IcingVersion
+	 *
+	 * @param  string $id UUID of version
+	 * @return bool|array false on failed save, array of new version.
+	 */
+	public function minorVersion($id) {
+		$data = [
+			'id' => $id,
+			'is_minor_version' => 1,
+			'modified' => false, // don't update modified
+		];
+
+		$this->create(false);
+		return $this->save($data, [
+			'callbacks' => false,
+			'validate' => false,
+			'counterCache' => false,
+		]);
+	}
+
+	/**
 	 * Run a diff between two different versions
 	 * if the second version is null use the curent
 	 *
@@ -96,13 +159,19 @@ class IcingVersion extends IcingAppModel {
 		}
 		$one_data = json_decode($one['IcingVersion']['json'], true);
 		if ($second_version_id) {
+			// Second Version supplied. Look it up.
 			$two = $this->findById($second_version_id);
 			$two_data = json_decode($two['IcingVersion']['json'], true);
 		} else {
+			// Second version not supplied, guess.
+			$conditions = array(
+				"$model.id" => $one['IcingVersion']['model_id']
+			);
+			if (isset($settings['soft_delete']) && $settings['soft_delete']) {
+				$conditions['is_soft_delete'] = false;
+			}
 			$two_data = ClassRegistry::init($model)->find('first',array(
-				'conditions' => array(
-					"$model.id" => $one['IcingVersion']['model_id']
-				),
+				'conditions' => $conditions,
 				'contain' => $settings['contain'],
 			));
 		}
@@ -157,6 +226,17 @@ class IcingVersion extends IcingAppModel {
 	}
 
 	/**
+	 * Cleanup all soft deletes on table
+	 *
+	 * @return boolean
+	 */
+	public function cleanupSoftDeleteVersions() {
+		return $this->deleteAll(array(
+			'IcingVersion.is_soft_delete' => true
+		), false, false);
+	}
+
+	/**
 	 * Save The Version data, but first check the limit, and delete the oldest based on created
 	 * if limit is reached.
 	 *
@@ -171,18 +251,30 @@ class IcingVersion extends IcingAppModel {
 			'model_id' => $data['model_id'],
 		);
 
+		// Only force extra condition if we have soft_deleting on.
+		if (isset($settings['soft_delete']) && $settings['soft_delete']) {
+			$conditions['is_soft_delete'] = 0;
+		}
+
 		// check if we should prune off old records for this model+id
 		//   (limited by settings - versions count)
 		if (!empty($settings['versions']) && is_numeric($settings['versions']) && $settings['versions'] > 0) {
 			$count = $this->find('count', compact('conditions'));
-			while ($count >= $settings['versions']) {
-				$oldest = $this->find('first', array(
+
+			if ($count >= $settings['versions']) {
+				$limit = $count - $settings['versions'] + 1; // removing current count minus setting (plus one to make room for this new version)
+				$versions_to_remove = $this->find('list', array(
 					'fields' => array('id'),
 					'conditions' => $conditions,
-					'order' => array("{$this->alias}.created ASC")
+					'order' => array("{$this->alias}.created ASC"),
+					'limit' => $limit,
 				));
-				$this->delete($oldest[$this->alias]['id']);
-				$count = $this->find('count', compact('conditions'));
+
+				if (isset($settings['soft_delete']) && $settings['soft_delete']) {
+					$this->softDeleteAll($versions_to_remove);
+				} else {
+					$this->hardDeleteAll($versions_to_remove);
+				}
 			}
 		}
 
@@ -207,18 +299,11 @@ class IcingVersion extends IcingAppModel {
 
 		// check if this we should change prior version to minor_revision based on minor_timeframe from settings
 		if (empty($data['is_minor_version']) && !empty($settings['minor_timeframe'])) {
-			// find all the records which "should be minor"
-			$versions_within_timeframe = $this->find('list', array(
-				'fields' => array('id'),
-				'conditions' => array_merge($conditions, array(
-					'IcingVersion.created >=' => date("Y-m-d H:i:s", strtotime("-{$settings['minor_timeframe']} seconds", time())),
-					'IcingVersion.is_minor_version' => false,
-				)),
-			));
-			foreach ($versions_within_timeframe as $version_id) {
-				$this->id = $version_id;
-				$this->saveField('is_minor_version', true);
-			}
+			// update all the records which "should be minor"
+			$this->updateAll(['is_minor_version' => true], array_merge($conditions, array(
+				'IcingVersion.created >=' => date("Y-m-d H:i:s", strtotime("-{$settings['minor_timeframe']} seconds", time())),
+				'IcingVersion.is_minor_version' => false,
+			)));
 		}
 
 		// finally, save this record

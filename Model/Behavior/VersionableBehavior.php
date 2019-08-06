@@ -20,13 +20,14 @@
  * public $actsAs = array('Icing.Versionable');
  *
  * public $actsAs = array('Icing.Versionable' => array(
- * 	'contain'          => array('Hour'), //contains for relative model to be saved.
- * 	'versions'         => '5',           //how many version to save at any given time (false by default unlimited)
- * 	'minor_timeframe'  => '10',          //Mark as minor_version if saved within 10 seconds of last version.  Easily cleanup minor_versions
- * 	'bind'             => false,         //if true, attach IcingVersionable as HasMany relationship for you onFind and if contained
- * 	'check_identical'  => false,         //if true, version is marked as minor, if the data is identical to last version
- * 	'ignore_identical' => false,         //if true, no version is created, if the data is identical to last version
- * 	'useDbConfig'      => null,          //if not null, we switch the IcingVersion Model to this DB config key ('default' inherited from AppModel)
+ * 	'contain'          => array('Hour'), // contains for relative model to be saved.
+ * 	'versions'         => '5',           // how many version to save at any given time (false by default unlimited)
+ * 	'minor_timeframe'  => '10',          // Mark as minor_version if saved within 10 seconds of last version.  Easily cleanup minor_versions
+ * 	'bind'             => false,         // if true, attach IcingVersionable as HasMany relationship for you onFind and if contained
+ * 	'check_identical'  => false,         // if true, version is marked as minor, if the data is identical to last version
+ * 	'ignore_identical' => false,         // if true, no version is created, if the data is identical to last version
+ * 	'useDbConfig'      => null,          // if not null, we switch the IcingVersion Model to this DB config key ('default' inherited from AppModel)
+ * 	'soft_delete'      => false,         // If true, will soft delete instead of delete on run.
  * ));
  *
  * Or for a global Configure::read() solution
@@ -36,16 +37,16 @@
  * Restore from Previous Version
  * @example
  *
- * $this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a'); //restores version id 50537471-ba08-44ae-a606-24e5e017215a
- * $this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a', false); //restores version id 50537471-ba08-44ae-a606-24e5e017215a and won't create a new version before restoring.
- * $this->Model->restoreVersion(2, 3); //restores the second version back from most recent on Model id 3
- * $this->Model->restoreVersion(2, 3, false); //restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
+ * $this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a'); // restores version id 50537471-ba08-44ae-a606-24e5e017215a
+ * $this->Model->restoreVersion('50537471-ba08-44ae-a606-24e5e017215a', false); // restores version id 50537471-ba08-44ae-a606-24e5e017215a and won't create a new version before restoring.
+ * $this->Model->restoreVersion(2, 3); // restores the second version back from most recent on Model id 3
+ * $this->Model->restoreVersion(2, 3, false); // restores the second version back from most recent on Model id 3 and doesn't create a new version before saving
  *
  * Diffs from a version
  * @example
  *
- * $result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); //Gets the diff between version id and the curent state of the record.
- * $result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); //Gets the diff between two different versions.
+ * $result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a'); // Gets the diff between version id and the curent state of the record.
+ * $result = $this->Model->diffVersion('50537471-ba08-44ae-a606-24e5e017215a', '501234121-ba08-44ae-a606-2asdf767a'); // Gets the diff between two different versions.
  *
  * Saving without making a version
  * @example
@@ -80,6 +81,7 @@ class VersionableBehavior extends ModelBehavior {
 			'check_identical'  => false,
 			'ignore_identical' => false,
 			'useDbConfig'      => null,
+			'soft_delete'      => false,
 		);
 		$config = Configure::read('Icing.Versionable.config');
 		if (!empty($config) && is_array($config)) {
@@ -163,11 +165,17 @@ class VersionableBehavior extends ModelBehavior {
 	 * @return boolean
 	 */
 	public function bindIcingVersion(Model $Model, $options = array()) {
-		$options = array_merge(array(
+		$defaults = array(
 			'className' => 'Icing.IcingVersion',
 			'foreignKey' => 'model_id',
 			'conditions' => array("IcingVersion.model" => $Model->alias)
-		), (array)$options);
+		);
+		if (isset($this->settings[$Model->alias]['soft_delete']) && $this->settings[$Model->alias]['soft_delete']) {
+			$defaults['conditions']['IcingVersion.is_soft_delete'] = false;
+		}
+
+		$options = array_merge($defaults, (array) $options);
+
 		return $Model->bindModel(array('hasMany' => array('IcingVersion' => $options)));
 	}
 
@@ -276,6 +284,7 @@ class VersionableBehavior extends ModelBehavior {
 			'url' => IcingUtil::getUrl(),
 			'ip' => IcingUtil::getIP(),
 			'is_minor_version' => false,
+			'is_soft_delete' => false,
 		);
 
 		if (method_exists($Model, 'getUserId')) {

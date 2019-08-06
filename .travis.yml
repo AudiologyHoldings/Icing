@@ -1,8 +1,7 @@
 language: php
 
 php:
-  - 5.4
-  - 5.5
+  - 7.3
 
 env:
   - CAKE_VERSION=2.3.10

@@ -374,7 +374,7 @@ class VersionableBehavior extends ModelBehavior {
 	 * @param  Model   $model [description]
 	 * @return boolean        [description]
 	 */
-	public function isEnabled(Model $model) {
+	public function isEnabled(Model $Model) {
 		return !! $this->settings[$Model->alias]['enabled'];
 	}
 

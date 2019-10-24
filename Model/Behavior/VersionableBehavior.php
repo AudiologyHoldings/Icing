@@ -74,7 +74,7 @@ class VersionableBehavior extends ModelBehavior {
 	 */
 	public function setUp(Model $Model, $settings = array()) {
 		$defaults = array(
-			'enabled'          => true,
+			'disabled'         => false,
 			'contain'          => array(),
 			'versions'         => false,
 			'minor_timeframe'  => false,
@@ -91,7 +91,7 @@ class VersionableBehavior extends ModelBehavior {
 		$this->settings[$Model->alias] = array_merge($defaults, (array)$settings);
 
 		// Check if enabled from setup, shortcut loading anything we don't need.
-		if (!$this->isEnabled($Model)) {
+		if ($this->isDisabled($Model)) {
 			return;
 		}
 
@@ -123,7 +123,7 @@ class VersionableBehavior extends ModelBehavior {
 	 * @return boolean
 	 */
 	public function beforeSave(Model $Model, $options = array()) {
-		if (!$this->isEnabled($Model)) {
+		if ($this->isDisabled($Model)) {
 			// skipping not enabled.
 			return true;
 		}
@@ -148,7 +148,7 @@ class VersionableBehavior extends ModelBehavior {
 	 * @return array $query
 	 */
 	public function beforeFind(Model $Model, $query = array()) {
-		if (!$this->isEnabled($Model)) {
+		if ($this->isDisabled($Model)) {
 			return $Model->beforeFind($query);
 		}
 		if (!$this->settings[$Model->alias]['bind']) {
@@ -200,7 +200,7 @@ class VersionableBehavior extends ModelBehavior {
 	 * @return boolean
 	 */
 	public function beforeDelete(Model $Model, $cascade = true) {
-		if (!$this->isEnabled($Model)) {
+		if ($this->isDisabled($Model)) {
 			return $Model->beforeDelete($cascade);
 		}
 		$this->saveVersion($Model, $delete = true);
@@ -374,8 +374,8 @@ class VersionableBehavior extends ModelBehavior {
 	 * @param  Model   $model [description]
 	 * @return boolean        [description]
 	 */
-	public function isEnabled(Model $Model) {
-		return !! $this->settings[$Model->alias]['enabled'];
+	public function isDisabled(Model $Model) {
+		return !! $this->settings[$Model->alias]['disabled'];
 	}
 
 }

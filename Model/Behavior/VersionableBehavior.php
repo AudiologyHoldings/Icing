@@ -74,6 +74,7 @@ class VersionableBehavior extends ModelBehavior {
 	 */
 	public function setUp(Model $Model, $settings = array()) {
 		$defaults = array(
+			'enabled'          => true,
 			'contain'          => array(),
 			'versions'         => false,
 			'minor_timeframe'  => false,
@@ -88,6 +89,11 @@ class VersionableBehavior extends ModelBehavior {
 			$defaults = array_merge($defaults, $config);
 		}
 		$this->settings[$Model->alias] = array_merge($defaults, (array)$settings);
+
+		// Check if enabled from setup, shortcut loading anything we don't need.
+		if (!$this->isEnabled($Model)) {
+			return;
+		}
 
 		// initialize the IcingVersion model onto this Behavior for easy access
 		$this->IcingVersion = ClassRegistry::init('Icing.IcingVersion');
@@ -117,6 +123,10 @@ class VersionableBehavior extends ModelBehavior {
 	 * @return boolean
 	 */
 	public function beforeSave(Model $Model, $options = array()) {
+		if (!$this->isEnabled($Model)) {
+			// skipping not enabled.
+			return true;
+		}
 		if (array_key_exists('create_version', $options) && empty($options['create_version'])) {
 			// skipping
 			return true;
@@ -138,6 +148,9 @@ class VersionableBehavior extends ModelBehavior {
 	 * @return array $query
 	 */
 	public function beforeFind(Model $Model, $query = array()) {
+		if (!$this->isEnabled($Model)) {
+			return $Model->beforeFind($query);
+		}
 		if (!$this->settings[$Model->alias]['bind']) {
 			return $Model->beforeFind($query);
 		}
@@ -187,6 +200,9 @@ class VersionableBehavior extends ModelBehavior {
 	 * @return boolean
 	 */
 	public function beforeDelete(Model $Model, $cascade = true) {
+		if (!$this->isEnabled($Model)) {
+			return $Model->beforeDelete($cascade);
+		}
 		$this->saveVersion($Model, $delete = true);
 		return $Model->beforeDelete($cascade);
 	}
@@ -350,6 +366,16 @@ class VersionableBehavior extends ModelBehavior {
 	 */
 	public function getIcingVersion(Model $Model) {
 		return $this->IcingVersion;
+	}
+
+	/**
+	 * Simple boolean check if behavior is enabled
+	 *
+	 * @param  Model   $model [description]
+	 * @return boolean        [description]
+	 */
+	public function isEnabled(Model $model) {
+		return !! $this->settings[$Model->alias]['enabled'];
 	}
 
 }

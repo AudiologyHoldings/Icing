@@ -26,7 +26,7 @@ class ShareHelper extends AppHelper {
 		'twitter' => 'https://twitter.com/share?',
 		'googleplus' => 'https://plus.google.com/share?',
 		'facebook' => 'https://www.facebook.com/sharer/sharer.php?',
-		'pinterest' => 'https://pinterest.com/pin/create/button/?',
+		'pinterest' => 'https://www.pinterest.com/pin/create/button/?',
 	);
 	
 	/**
@@ -151,6 +151,7 @@ class ShareHelper extends AppHelper {
 	* @return string link
 	*/
 	public function pinterest($options = array()) {
+
 		$options = array_merge(array(
 			'label' => $this->Html->image('Icing.pinterest.png'),
 			'linkOptions' => array(
@@ -162,6 +163,7 @@ class ShareHelper extends AppHelper {
 			'image' => '',
 			'text' => '',
 		), (array) $options);
+
 
 		$data = array(
 			'media' => $options['image'],

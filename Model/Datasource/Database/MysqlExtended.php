@@ -50,7 +50,7 @@ class MysqlExtended extends Mysql {
 	 *
 	 * @var boolean
 	 */
-	public $debugging = false;
+	public $debugging = true;
 
 
 	/**

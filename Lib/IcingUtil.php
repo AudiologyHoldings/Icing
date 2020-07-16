@@ -225,7 +225,7 @@ class IcingUtil extends CakeObject {
 		$returnArray = array();
 		foreach ( $arrayNested as $key => $val ) {
 			if (is_array($val)) {
-				$returnArray = set::merge($returnArray,$val);
+				$returnArray = Set::merge($returnArray,$val);
 			} else {
 				$returnArray[$key] = $val;
 			}

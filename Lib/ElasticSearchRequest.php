@@ -93,6 +93,7 @@ class ElasticSearchRequest extends HttpSocket {
 		}
 
 		$request['body'] = $this->asJson($requestBody);
+        $request['header']['Content-Type'] = 'application/json';
 		$ESresponse = $this->request($request);
 
 		if ($returnRaw) {
@@ -163,22 +164,6 @@ class ElasticSearchRequest extends HttpSocket {
 		return $data['_code'] == 200;
 	}
 
-	public function createMapping($mapping, $request = array()) {
-		$request = $this->addConfigToRequest($request);
-		$table = $this->verifyTableOnPath($request);
-		if (!array_key_exists($table, $mapping)) {
-			$mapping = array($table => $mapping);
-		}
-		if (!array_key_exists('properties', $mapping[$table])) {
-			$mapping[$table] = array('properties' => $mapping[$table]);
-		}
-		$request['method'] = 'PUT';
-		$request['uri']['path'] .= '/_mapping';
-		$request['body'] = $this->asJson($mapping);
-		$data = $this->request($request);
-		return $data['_code'] == 200;
-	}
-
 	public function getMapping($request = array()) {
 		$request = $this->addConfigToRequest($request);
 		$this->verifyTableOnPath($request);
@@ -195,6 +180,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['method'] = 'POST';
 		$request['uri']['path'] .= '/'; // automatic ID creation
 		$request['body'] = $this->asJson($data);
+        $request['header']['Content-Type'] = 'application/json';
 		$data = $this->request($request);
 		if (!empty($data['_id'])) {
 			return $data['_id'];
@@ -208,6 +194,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['method'] = 'POST';
 		$request['uri']['path'] .= "/{$id}"; // explicit id = overwrite
 		$request['body'] = $this->asJson($data);
+        $request['header']['Content-Type'] = 'application/json';
 		$data = $this->request($request);
 		if (!empty($data['_id'])) {
 			return $data['_id'];
@@ -634,8 +621,8 @@ class ElasticSearchRequest extends HttpSocket {
 		}
 		$data = '';
 		if (!empty($request['body'])) {
-			$data = $this->asJson($request['body']);
-		}
+            $data = $this->asJson($request['body']);
+        }
 		return "curl -X{$request['method']} '{$url}' -d '{$data}'";
 	}
 

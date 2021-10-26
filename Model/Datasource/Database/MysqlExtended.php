@@ -17,6 +17,7 @@ class MysqlExtended extends Mysql {
 		'primary_key' => array('name' => 'NOT NULL AUTO_INCREMENT'),
 		'string' => array('name' => 'varchar', 'limit' => '255'),
 		'text' => array('name' => 'text'),
+        'longtext' => array('name' => 'longtext'),
 		'biginteger' => array('name' => 'bigint', 'limit' => '20'),
 		'integer' => array('name' => 'int', 'limit' => '11', 'formatter' => 'intval'),
 		'float' => array('name' => 'float', 'formatter' => 'floatval'),

@@ -1,5 +1,5 @@
 {
-	"name": "alliedhealthmedia/icing",
+	"name": "Healthy-Hearing/Icing",
 	"description": "CakePHP Icing Plugin - Portable Package of Handy Utilities for CakePHP",
 	"type": "cakephp-plugin",
 	"keywords": ["cakephp", "icing", "file upload", "csv", "summable", "google calendar", "twitter", "do", "shell", "versionable", "database cache", "cache", "apptest", "appfixture", "ckeditor"],
@@ -38,7 +38,7 @@
 		},
 		{
 			"name": "Becky Lemons",
-			"homepage": "http://www.alliedhealthmedia.com",
+			"homepage": "http://www.healthyhearing.com",
 			"role": "Author"
 		},
 		{
@@ -53,8 +53,8 @@
 		}
 	],
 	"support": {
-		"issues": "https://github.com/AudiologyHoldings/Icing/issues",
-		"source": "https://github.com/AudiologyHoldings/Icing"
+		"issues": "https://github.com/Healthy-Hearing/Icing/issues",
+		"source": "https://github.com/Healthy-Hearing/Icing"
 	},
 	"require": {
 		"php": ">=5.3.0",

@@ -136,7 +136,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['body'] = '';
 		$data = $this->request($request);
 
-		if ($data['_code'] != 200) {
+		if (empty($data) || (!empty($data) && $data['_code'] != 200)) {
 			return false;
 		}
 
@@ -176,7 +176,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['uri']['path'] .= '/_mapping';
 		$request['body'] = $this->asJson($mapping);
 		$data = $this->request($request);
-		return $data['_code'] == 200;
+		return !empty($data) && $data['_code'] == 200;
 	}
 
 	public function getMapping($request = array()) {

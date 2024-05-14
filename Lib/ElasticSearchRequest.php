@@ -173,7 +173,7 @@ class ElasticSearchRequest extends HttpSocket {
 			$mapping[$table] = array('properties' => $mapping[$table]);
 		}
 		$request['method'] = 'PUT';
-		$request['uri']['path'] .= '/_mapping';
+		$request['uri']['path'] .= '/_mapping?include_type_name=true';
 		$request['body'] = $this->asJson($mapping);
 		$data = $this->request($request);
 		return !empty($data) && $data['_code'] == 200;
@@ -183,7 +183,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request = $this->addConfigToRequest($request);
 		$this->verifyTableOnPath($request);
 		$request['method'] = 'GET';
-		$request['uri']['path'] .= '/_mapping';
+		$request['uri']['path'] .= '/_mapping?include_type_name=true';
 		$request['body'] = '';
 		$data = $this->request($request);
 		return $data;

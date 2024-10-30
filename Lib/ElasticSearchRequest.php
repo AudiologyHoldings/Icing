@@ -136,7 +136,7 @@ class ElasticSearchRequest extends HttpSocket {
 		$request['body'] = '';
 		$data = $this->request($request);
 
-		if (empty($data) || (!empty($data) && $data['_code'] != 200)) {
+		if (empty($data) || (!empty($data['_code']) && ($data['_code'] < 200 || $data['_code'] > 299)) ) {
 			return false;
 		}
 
